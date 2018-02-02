@@ -1,0 +1,26 @@
+Ser
+King
+Lord
+Lady
+Maester
+Grand Maester
+Queen
+Prince
+Princess
+Magister
+Khal
+Khalakka
+Septa
+Septon
+Ko
+Captain
+Lord Commander
+High Septon
+Archmaester
+Wisdom
+Goodwife
+Goodman
+Brother
+Triarch
+Jaqqa Rhan
+Empress
