@@ -211,7 +211,8 @@ for name in f:lines() do print(name) end
 
 
 charIndex=dofile("../Database_CharIndex.lua") -- On récupère la BD si elle existe déjà
-index = 1 -- A faire : Trouver comment définir l'index si charIndex existe déjà
+index = charIndex[0] -- A faire : Trouver comment définir l'index si charIndex existe déjà
+print("index ",index)
 
 file="../FilesForDb/Bran Stark.txt" --Fichier de test car problème avec le parcourt du dossier
 path,filename,extension=string.match(file, "(.-)([^\\/]-%.?([^%.\\/]*))$") --on recupere le nom du fichier
@@ -225,10 +226,10 @@ if havetag(seq, "#character") then
 	if charIndex[character]==nil then
 		charIndex[character] = {}
 		table.insert(charIndex[character],index)
-		index=index+1
+		charIndex[0]=index+1
 	else 
 		table.insert(charIndex[character],index)
-		index=index+1
+		charIndex[0]=index+1
 	end
 end
 print(" char ind ", serialize(charIndex))
@@ -244,83 +245,49 @@ out_file:close()
 -------------------------------------------------------------
 
 --seq de test
-local seq = dark.sequence("Brandon Stark was a member of House Stark and a son of the legendary Bran the Builder . Some stories claim that King Uthor of the High Tower commissioned Bran the Builder to design the stone Hightower , while others claim it was instead Bran's son , Brandon . It is unknown if Brandon was a King of Winter . Lord of the Seven Kingdoms is the title claimed by the ruler of the Seven Kingdoms of Westeros , whose seat is the Red Keep in King's Landing . After landing at the mouth of the Blackwater Rush , Aegon the Conqueror was crowned by his sister Visenya as ' Aegon , First of His Name , King of All Westeros , and Shield of His People ' . Stannis Baratheon styles himself as King of Westeros .")
-pipe(seq)
-print(seq:tostring(tags))
+-- local seq = dark.sequence("Brandon Stark was a member of House Stark and a son of the legendary Bran the Builder . Some stories claim that King Uthor of the High Tower commissioned Bran the Builder to design the stone Hightower , while others claim it was instead Bran's son , Brandon . It is unknown if Brandon was a King of Winter . Lord of the Seven Kingdoms is the title claimed by the ruler of the Seven Kingdoms of Westeros , whose seat is the Red Keep in King's Landing . After landing at the mouth of the Blackwater Rush , Aegon the Conqueror was crowned by his sister Visenya as ' Aegon , First of His Name , King of All Westeros , and Shield of His People ' . Stannis Baratheon styles himself as King of Westeros .")
+-- pipe(seq)
+-- print(seq:tostring(tags))
 
 --Exemple de bd
-local db = {
-	[1]={
-		Name={
-			Firstname="fn",
-			Surname="sn"
-		},		
-		Alias={"al"},		
-		Titles={"tit"},		
-		Allegiance={"alleg"},		
-		Culture={"none"},		
-		Born={
-			Date={"date"},
-			Place={"place"},
-			House={"house"}
-		},		
-		Books={
-			POV={"none"},
-			Appearance={"none"},
-			Mentioned={"non"}
-		},		
-		Gender="m",		
-		Family={
-			Parents={"2"},
-			Siblings={"a lot"},
-		},		
-		Companions={"wolf"},		
-		Looks={
-			Skin="verry ghosty",
-			Eyes="uggly",
-			Hair="hairry"
-		},		
-		Passions={"die"},		
-		Events={"live"}
-	}
-}
+-- local db = dofile("../Database_Characters.lua")
 
 
-if havetag(seq, "#character") then
+-- if havetag(seq, "#character") then
 --on récupère les tags liés à #character
-	local character = GetValueInLink(seq, "#character", "#character")
-	local title = GetValueInLink(seq, "#title", "#character")
-	local firstname = GetValueInLink(seq, "#firstname", "#character") or nil
-	local alias = GetValueInLink(seq, "#alias", "#character") or nil 
-	local surname  = GetValueInLink(seq, "#surname",   "#character") or nil
+	-- local character = GetValueInLink(seq, "#character", "#character")
+	-- local title = GetValueInLink(seq, "#title", "#character")
+	-- local firstname = GetValueInLink(seq, "#firstname", "#character") or nil
+	-- local alias = GetValueInLink(seq, "#alias", "#character") or nil 
+	-- local surname  = GetValueInLink(seq, "#surname",   "#character") or nil
 	
-	print("\nchar: ",character, "\n\tfn: ",firstname," \n\tsn : ",surname, "\n\talias: ", alias)
+	-- print("\nchar: ",character, "\n\tfn: ",firstname," \n\tsn : ",surname, "\n\talias: ", alias)
 	
 --On part du postulat qu'on a une fiche sur tous les persos déjà 
-	for i, char in ipairs(db) do
-		print("\t", db[i].Name.Firstname, db[i].Name.Surname)
-		if( firstname ~= db[i].Name.Firstname or surname ~= db[i].Name.Surname ) then
+	-- for i, char in ipairs(db) do
+		-- print("\t", db[i].Name.Firstname, db[i].Name.Surname)
+		-- if( firstname ~= db[i].Name.Firstname or surname ~= db[i].Name.Surname ) then
 			-- A faire : Faire le lien avec la bd contenant les index
 			
-			db[character]=db[character] or {}
-			db[character].Name =
-			{
-				Firstname = firstname,
-				Surname = surname,
-			}
-			db[character].Alias=db[character].Alias or {}
-			table.insert(db[character].Alias,alias)
+			-- db[character]=db[character] or {}
+			-- db[character].Name =
+			-- {
+				-- Firstname = firstname,
+				-- Surname = surname,
+			-- }
+			-- db[character].Alias=db[character].Alias or {}
+			-- table.insert(db[character].Alias,alias)
 			
-		end
-	end
-end
+		-- end
+	-- end
+-- end
 
-print("DB ", serialize(db))
---On met le tout dans un fichier
-local out_file = io.open("../Database_Characters.lua", "w")
-out_file:write("return ")
-out_file:write(serialize(db))
-out_file:close()	
+-- print("DB ", serialize(db))
+-- On met le tout dans un fichier
+-- local out_file = io.open("../Database_Characters.lua", "w")
+-- out_file:write("return ")
+-- out_file:write(serialize(db))
+-- out_file:close()	
 	
 	
 	
