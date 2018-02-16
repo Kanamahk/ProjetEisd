@@ -198,8 +198,37 @@ function GetValueInLink(seq, entity, link)
 	return nil
 end
 
+-------------------------------------------------------------
+------------------ DB-RELATED FUNCTIONS --------------------
+-------------------------------------------------------------
+function isCharInIndex(name,dbIndex)
+	-- print("name: ",name)
+	for i, pos in pairs(dbIndex) do
+		-- print("i : ",i, "et pos: ",pos)
+		-- print("db index de i ",serialize(dbIndex[i]))
+		if (i == name) then	
+			return true, pos
+		end
+	end
+	return false, nil
+end
 
-
+-- function possibleChar(index,db)
+	-- res={}
+	-- for i, pos in pairs(index) do
+		-- print("i: ",i, "pos : ",pos)
+		-- table.insert(res,db[i])
+	-- end
+	-- if (#res==1) then	
+		-- print("res: ", serialize(res))
+		-- return res
+	-- else	
+		-- print("Multiple possibilities")
+		-- return nil
+	-- end
+	-- print("taille res : ",#res)
+	-- print("res: ", serialize(res))
+-- end
 -------------------------------------------------------------
 ------------------ DATABSE - FIRST STEP ---------------------
 -------------------------------------------------------------
@@ -211,7 +240,7 @@ for name in f:lines() do print(name) end
 
 
 charIndex=dofile("../Database_CharIndex.lua") -- On récupère la BD si elle existe déjà
-index = charIndex[0] -- A faire : Trouver comment définir l'index si charIndex existe déjà
+index = charIndex[0]
 print("index ",index)
 
 file="../FilesForDb/Bran Stark.txt" --Fichier de test car problème avec le parcourt du dossier
@@ -222,18 +251,27 @@ seq=pipe(filename)
 if havetag(seq, "#character") then
 	local character = GetValueInLink(seq, "#character","#character")
 	local surname = GetValueInLink(seq, "#surname", "#character") or nil
+	print("type surname", type(surname))
 --A faire : rajouter le nom de famille aussi
+	ind=charIndex[0]
 	if charIndex[character]==nil then
 		charIndex[character] = {}
 		table.insert(charIndex[character],index)
-		charIndex[0]=index+1
+		-- charIndex[0]=index+1
 	else 
 		table.insert(charIndex[character],index)
-		charIndex[0]=index+1
+		-- charIndex[0]=index+1
 	end
+	if charIndex[surname]==nil then
+		charIndex[surname] = {}
+		table.insert(charIndex[surname],index)
+	else 
+		table.insert(charIndex[surname],index)
+	end
+	charIndex[0]=charIndex[0]+1
 end
-print(" char ind ", serialize(charIndex))
 
+print(" char ind ", serialize(charIndex))
 --On met le tout dans un fichier
 local out_file = io.open("../Database_CharIndex.lua", "w")
 out_file:write("return ")
@@ -244,24 +282,43 @@ out_file:close()
 ------------------ DATABSE - SECOND STEP --------------------
 -------------------------------------------------------------
 
---seq de test
--- local seq = dark.sequence("Brandon Stark was a member of House Stark and a son of the legendary Bran the Builder . Some stories claim that King Uthor of the High Tower commissioned Bran the Builder to design the stone Hightower , while others claim it was instead Bran's son , Brandon . It is unknown if Brandon was a King of Winter . Lord of the Seven Kingdoms is the title claimed by the ruler of the Seven Kingdoms of Westeros , whose seat is the Red Keep in King's Landing . After landing at the mouth of the Blackwater Rush , Aegon the Conqueror was crowned by his sister Visenya as ' Aegon , First of His Name , King of All Westeros , and Shield of His People ' . Stannis Baratheon styles himself as King of Westeros .")
--- pipe(seq)
--- print(seq:tostring(tags))
+-- seq de test
+local seq = dark.sequence("Brandon Stark was a member of House Stark and a son of the legendary Bran the Builder . Some stories claim that King Uthor of the High Tower commissioned Bran the Builder to design the stone Hightower , while others claim it was instead Bran's son , Brandon . It is unknown if Brandon was a King of Winter . Lord of the Seven Kingdoms is the title claimed by the ruler of the Seven Kingdoms of Westeros , whose seat is the Red Keep in King's Landing . After landing at the mouth of the Blackwater Rush , Aegon the Conqueror was crowned by his sister Visenya as ' Aegon , First of His Name , King of All Westeros , and Shield of His People ' . Stannis Baratheon styles himself as King of Westeros .")
+pipe(seq)
+print(seq:tostring(tags))
 
---Exemple de bd
--- local db = dofile("../Database_Characters.lua")
+-- Exemple de bd
+local db = dofile("../Database_Characters.lua")
 
 
--- if havetag(seq, "#character") then
---on récupère les tags liés à #character
-	-- local character = GetValueInLink(seq, "#character", "#character")
-	-- local title = GetValueInLink(seq, "#title", "#character")
-	-- local firstname = GetValueInLink(seq, "#firstname", "#character") or nil
-	-- local alias = GetValueInLink(seq, "#alias", "#character") or nil 
-	-- local surname  = GetValueInLink(seq, "#surname",   "#character") or nil
+if havetag(seq, "#character") then
+-- on récupère les tags liés à #character
+	local character = GetValueInLink(seq, "#character", "#character")
+	local title = GetValueInLink(seq, "#title", "#character")
+	local firstname = GetValueInLink(seq, "#firstname", "#character") or nil
+	local alias = GetValueInLink(seq, "#alias", "#character") or nil 
+	local surname  = GetValueInLink(seq, "#surname",   "#character") or nil
 	
-	-- print("\nchar: ",character, "\n\tfn: ",firstname," \n\tsn : ",surname, "\n\talias: ", alias)
+	
+	print("\nchar: ",character, "\n\tfn: ",firstname," \n\tsn : ",surname, "\n\talias: ", alias)
+	
+	if(isCharInIndex(character,charIndex) == true) then
+		print("char true")
+		b,listIndex=isCharInIndex(character,charIndex)
+	end
+	if(isCharInIndex(alias.." "..surname,charIndex) == true) then
+		print("al+surn true")
+		b,listIndex=isCharInIndex(alias.." "..surname,charIndex)
+		print("listIndex ",serialize(listIndex))
+	end
+	for i, pos in pairs(listIndex) do
+		-- print("res : ", serialize(db[i]))
+		
+	end
+	-- if (c~=nil) then
+		-- table.insert(db[i].Alias,alias)
+	-- end
+	-- print(" at the end : ", serialize(db))
 	
 --On part du postulat qu'on a une fiche sur tous les persos déjà 
 	-- for i, char in ipairs(db) do
@@ -280,7 +337,7 @@ out_file:close()
 			
 		-- end
 	-- end
--- end
+end
 
 -- print("DB ", serialize(db))
 -- On met le tout dans un fichier
