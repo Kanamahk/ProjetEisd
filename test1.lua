@@ -150,6 +150,36 @@ function PossRetrieval(possess)
 	
 end
 
+require "math"
+
+function LevenshteinDistance(chain, otherchain)
+	local d = {}
+	local i = 0
+	local j = 0
+	local subCost = 0
+    
+	for i=1,chain:len() do
+        d[i] = {}
+		d[i][1] = i
+	end
+	for j=1,otherchain:len() do 
+		d[1][j] = j
+	end
+	for i=2,chain:len() do
+		for j=2,otherchain:len() do
+			if chain[i] == otherchain[j] then
+				subCost = 0
+			else
+				subCost = 1
+			end
+			d[i][j] = math.min(d[i - 1][j] + 1, 
+								d[i][j - 1] + 1,
+								d[i - 1][j - 1] + subCost)
+		end
+	end
+	return d[#chain][#otherchain]
+end
+
 function PossWhoWat(pos)
 	local ret = {}
 	ret["who"] = ""
