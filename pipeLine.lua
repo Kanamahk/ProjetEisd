@@ -121,7 +121,7 @@ pipe:pattern([[
 		[#RelPossess (the #Relation of #Pers|#RelPossess) | (((#Character|#RelPossess) "'" s |#Possessif) #Relation)]
 	]])--reconnaissance d'un ou plusieur personnage a partir de leur relation avec un autre
 pipe:pattern([[
-		[#PosHow How|how #VRB?	
+		[#PosHow How|how #VRB?	]
 	]])--reconnaissance de question en How TODO
 pipe:pattern([[
 		[#Possess 
@@ -131,14 +131,15 @@ pipe:pattern([[
 						|#House
 						|#Allegiance
 					]
+					|[#Time #Born|#Death #Date|#Place|#House]
 					|#Aliases
 					|[#Physical #Appearance|#BodPart]
 					|#Personality
 					|#Passion
-					|[#Time #Born|#Death #Place|#Date|#House]
 				] of [#Possessor #Pers|#Possess]) | 
 			([#Possessor (#Character|#Possess|#Possessif)] ("'" s)?  [#Possessed	 
-					[#HasPast #Timestamp? 
+					[#Time (#Born|#Death) #Date|#Place|#House]
+					|[#HasPast #Timestamp? 
 						#Titles
 						|#House
 						|#Allegiance
@@ -147,18 +148,18 @@ pipe:pattern([[
 					|#Appearance
 					|#Personality
 					|#Passion
-					|[#Time #Born|#Death #Place|#Date|#House]
+					
 				])
 		]
 	]])--reconnaissance d'un attribut d'un personnage
 pipe:pattern([[
 		[#Person ((Who|who) #VRB)? ((the)? #Individual (who is)?)? (#Wed|#RelPossess) #Person? (#VRB)?]
 	]])--reconnaissance d'une reference a un personnage
-pipe:pattern([[
-		[#Enum 
-			#Possess (and|","|";"#Enum)?
-		]
-]])--enumaraiton d'elements TODO
+-- pipe:pattern([[
+		-- [#Enum 
+			-- #Possess (and|","|";"#Enum)?
+		-- ]
+-- ]])--enumaraiton d'elements TODO
 pipe:pattern([[
 		[#Dates 
 			[#Annee 
