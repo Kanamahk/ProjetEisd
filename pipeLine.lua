@@ -80,12 +80,13 @@ pipe:lexicon("#House", {"house", "House", "Family","family"})
 pipe:lexicon("#Appearance", {"looks like","appearance","look"})
 pipe:lexicon("#Titles", {"Title", "Titles", "title", "titles"})
 pipe:lexicon("#Allegiance", {"allegiance", "Allegiance","allegiances", "Allegiances", "organization","Organization", "organizations","Organizations",})
-pipe:lexicon("#personality", {"personality", "Personality", "psychology"})
+pipe:lexicon("#Personality", {"personality", "Personality", "psychology"})
 pipe:lexicon("#member", {"part of","loyal to", "member of", "members of"})
-pipe:lexicon("#passions", {"passion"})
+pipe:lexicon("#Passions", {"passion"})
 pipe:lexicon("#QuestionMark", {"Who","who", "What", "what", "Which", "which", "Where", "where", "When", "when", "How", "how", "Why", "why"})
 pipe:lexicon("#Aliases", {"called", "known as", "Alias", "NickName", "nicknames", "Nicknames", "nickname", "Nicknamed", "Nicknamed", "named", "Aliases", "aliases", "alias"})
 pipe:lexicon("#Singular", {"is", "was", "has"})
+pipe:lexicon("#BodPart", {"eye", "eyes", "hair", "face"})
 pipe:lexicon("#Color", {"blue","red","brown","white", "black","green", "gold"})
 pipe:lexicon("#Hcolor", {"blond","ginger", "redhead","brunette",  })
 pipe:lexicon("#Plural", {"are", "were"})
@@ -103,34 +104,25 @@ pipe:lexicon("#Det", {"the", "a", "The", "A"})
 
 pipe:pattern([[
 		[#VRB #Past|#Present]
-	]])
+	]])--reconnaissance des Auxiliaires
 pipe:pattern([[
 		[#Character #Title?? (#FirstName|#NickName) (#Houses|#SurName)?]
-	]])
- -- pipe:pattern([[
-		-- -- [#Subject #POS=VRB #Character #POS=VRB?]
-	 -- ]])
+	]])--reconnaissance des personnages
 pipe:pattern([[
 		[#Pers #Character|#Demonstratif|#Possessif|#Pronoun]
-	]])
-pipe:pattern([[
-		[#PQuestion (Who|who) .* "?"]
-]])
+	]])--reconnaissance de token qui font reference a des un ou des personnage dont on a eventuellement parlé
  pipe:pattern([[
 		[#LoQuestion (Where|where) .* "?"]
-]])
+	]])--reconnaissance de question concernant un endroit TODO
 pipe:pattern([[
 		[#Wed (Married|married) to (#Person|#Pers|#Possess)]
-]])
--- pipe:pattern([[
-		-- [#Enum  (#Person|#Pers|#Alias|#Title) (and|","|";"#Enum)?]
--- ]])
+	]])--reconnaissance d'une relation marital 
 pipe:pattern([[
 		[#RelPossess (the #Relation of #Pers|#RelPossess) | (((#Character|#RelPossess) "'" s |#Possessif) #Relation)]
-]])
+	]])--reconnaissance d'un ou plusieur personnage a partir de leur relation avec un autre
 pipe:pattern([[
-				
-]])
+		[#PosHow How|how #VRB?	
+	]])--reconnaissance de question en How TODO
 pipe:pattern([[
 		[#Possess 
 			(the [#Possessed	
@@ -140,9 +132,9 @@ pipe:pattern([[
 						|#Allegiance
 					]
 					|#Aliases
-					|#Appearance
-					|#personality
-					|#passion
+					|[#Physical #Appearance|#BodPart]
+					|#Personality
+					|#Passion
 					|[#Time #Born|#Death #Place|#Date|#House]
 				] of [#Possessor #Pers|#Possess]) | 
 			([#Possessor (#Character|#Possess|#Possessif)] ("'" s)?  [#Possessed	 
@@ -153,20 +145,20 @@ pipe:pattern([[
 					]
 					|#Aliases
 					|#Appearance
-					|#personality
-					|#passion
+					|#Personality
+					|#Passion
 					|[#Time #Born|#Death #Place|#Date|#House]
 				])
 		]
-	]])
+	]])--reconnaissance d'un attribut d'un personnage
 pipe:pattern([[
 		[#Person ((Who|who) #VRB)? ((the)? #Individual (who is)?)? (#Wed|#RelPossess) #Person? (#VRB)?]
-	]])
+	]])--reconnaissance d'une reference a un personnage
 pipe:pattern([[
 		[#Enum 
 			#Possess (and|","|";"#Enum)?
 		]
-]])
+]])--enumaraiton d'elements TODO
 pipe:pattern([[
 		[#Dates 
 			[#Annee 
@@ -174,7 +166,7 @@ pipe:pattern([[
 				>(#IndiceTemp)
 			] #IndiceTemp
 		]
-]])
+]])--reconnaissances de dates
 pipe:pattern([[
     [#Places
             #castle
@@ -182,13 +174,13 @@ pipe:pattern([[
             | #isle
             | #region 
     ]
-]])
+]])--reconnaissance de lieux
 pipe:pattern([[
 	[#WhatQuestion (What|what) ]
-]])
+]])--reconnaissance d'autre question en What TODO
 pipe:pattern([[
 	[#PosWhat (What|what) #VRB [#Possess] ]
-]])
+]])--reconnaissance de question cencernant des attributs de personnages
 pipe:pattern([[
 	[#ActWho (Who|who) #VRB??
 		[#Born #birth (in #Dates)|(at #Places)]
@@ -203,6 +195,6 @@ pipe:pattern([[
 			]
 			
 	]
-]])
+]])--reconnaissance de question generale sur des personnages (Who died by Joffrey?)
 
 return pipe

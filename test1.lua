@@ -1,5 +1,5 @@
 pipe = dofile("pipeLine.lua")
-
+require(
 Link = dofile("exempleIndexBD.lua")
 Bd = dofile("exempleCharacterBD.lua")
 quitting = false
