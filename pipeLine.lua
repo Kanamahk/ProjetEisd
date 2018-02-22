@@ -4,7 +4,7 @@ pipe:lexicon("#FirstName", "Lexiques/Lexique_CharactersFirstname.txt")
 pipe:lexicon("#SurName", "Lexiques/Lexique_CharactersSurname.txt")
 pipe:lexicon("#NickName", "Lexiques/Lexique_Alias.txt")
 pipe:lexicon("#Title", "Lexiques/Lexique_Titles.txt")
-pipe:lexicon("#Quit", {"quit", "Quit", "QUIT", "Aurevoir"})
+pipe:lexicon("#Quit", {"quit", "Quit", "QUIT", "good bye", "bye", "see you later"})
 -- pipe:model("model/postag-en")
 lexh ={}
 for line in io.lines("Lexiques/Houses.txt") do
@@ -127,11 +127,12 @@ pipe:pattern([[
 		[#Possess 
 			(the [#Possessed	
 					[#HasPast #Timestamp? 
-						#Titles
+						(#Titles
 						|#House
-						|#Allegiance
+						|#Allegiance)
 					]
-					|[#Time #Born|#Death #Date|#Place|#House]
+					|[#Time (#Born|#Death) #Date|#Place|#House]
+					|#Appearance
 					|#Aliases
 					|[#Physical #Appearance|#BodPart]
 					|#Personality
@@ -140,9 +141,9 @@ pipe:pattern([[
 			([#Possessor (#Character|#Possess|#Possessif)] ("'" s)?  [#Possessed	 
 					[#Time (#Born|#Death) #Date|#Place|#House]
 					|[#HasPast #Timestamp? 
-						#Titles
+						(#Titles
 						|#House
-						|#Allegiance
+						|#Allegiance)
 					]
 					|#Aliases
 					|#Appearance

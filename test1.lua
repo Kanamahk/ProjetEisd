@@ -88,10 +88,35 @@ function PossRetrieval(possess, isPast, isPlur)
 			local tag = piposs[piposs["#Possessed"][1][1]][2]["name"]
 			local tag2 = piposs[piposs["#Possessed"][1][2]][2]["name"]
 			for i=1, #Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)], 1 do
+				ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)][i]["Period"]
 				ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)][i]["value"]
 			end
 		elseif #piposs["#Appearance"] >0 then
-			print("1")
+			local rr =  "Eyes : "
+			if #Chara["Appearance"]["Traits"]["Eyes"] == 0 then 
+				rr  = rr.."UNKNOWN"
+			else
+				for i =1, #Chara["Appearance"]["Traits"]["Eyes"], 1 do
+					rr = rr..Chara["Appearance"]["Traits"]["Eyes"][i]["value"]..", "
+				end
+			end
+			rr= rr.." Skin: "
+			if #Chara["Appearance"]["Traits"]["Skin"] == 0 then 
+				rr  = rr.."UNKNOWN"
+			else
+				for i =1, #Chara["Appearance"]["Traits"]["Skin"], 1 do
+					rr = rr..Chara["Appearance"]["Traits"]["Skin"][i]["value"]..", "
+				end
+			end
+			rr= rr..", Hair : "
+			if #Chara["Appearance"]["Traits"]["Hair"]==0 then
+				rr = rr .."UNKNOWN"
+			else
+				for i =1, #Chara["Appearance"]["Traits"]["Hair"], 1 do
+					rr = rr..Chara["Appearance"]["Traits"]["Hair"][i]["value"]..", "
+				end
+			end
+			ret[#ret +1] = rr
 		elseif #piposs["#HasPast"] > 0 then 
 			local tag = ""
 			if #piposs["#Timestamp"]>0 then
@@ -451,6 +476,7 @@ while quitting ~= true do
 	answer = io.read()
 	piped = pipe(answer:gsub("%p", " %0 "))
 	print(piped)
+	quitting = #piped["#Quit"]>0
 	if #piped["#Character"] == 0 then
 		if #piped["#Pers"] == 0 then
 			print ("Who are you talking about ?")
@@ -461,6 +487,7 @@ while quitting ~= true do
 		Charac = piped:tag2str("#Character")[1]
 		contextp = Charac
 	end
+	
 	if #piped["#WhatQuestion"] >0 then
 		local pos = piped:tag2str("#Possess")[1]
 		reply = pos.. " " .. piped:tag2str("#VRB")[1] .. " " .. PossRetrieval(pos,#piped["#Past"]>0,#piped["#Plural"]>0)
