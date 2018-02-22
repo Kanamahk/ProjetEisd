@@ -1,138 +1,4 @@
-pipe = dark.pipeline()
-pipe:basic()
-pipe:lexicon("#FirstName", "Lexiques/Lexique_CharactersFirstname.txt")
-pipe:lexicon("#SurName", "Lexiques/Lexique_CharactersSurname.txt")
-pipe:lexicon("#NickName", "Lexiques/Lexique_Alias.txt")
-pipe:lexicon("#Title", "Lexiques/Lexique_Titles.txt")
-pipe:lexicon("#Quit", {"quit", "Quit", "QUIT", "Aurevoir"})
-pipe:model("model/postag-en")
-lexh ={}
-for line in io.lines("Lexiques/Houses.txt") do
-	for sen in line:gmatch("[^,]+") do
-		sen = sen:gsub("^%s*", ""):gsub("%s*$", "")
-		lexh[#lexh + 1] = sen
-		--lexh[#lexh + 1] = sen:lower()
-	end
-end
-
---line =line:gsub(", ", ",")
-	--for sen in line:gmatch(".-[,]") do
-		--sen =sen:gsub(",", "")
-		--lexh[#lexh+1] = sen
-		--end
---	end
-	
-pipe:lexicon("#House", lexh)
-lexc ={}
-for line in io.lines("Lexiques/Castles.txt") do
-	for sen in line:gmatch("[^,]+") do
-		lexc[#lexc+1] = sen:gsub("^%s", ""):gsub("%s*$", "")
-		end
-	end
-pipe:lexicon("#Castle", lexc)
-	
-lexc ={}
-for line in io.lines("Lexiques/Cities.txt") do
-	for sen in line:gmatch("[^,]+") do
-		lexc[#lexc+1] = sen:gsub("^%s", ""):gsub("%s*$", ""):gsub("%p", " %0 ")
-		end
-	end
-pipe:lexicon("#City", lexc)
-
-lexr ={}
-for line in io.lines("Lexiques/Regions.txt") do
-	for sen in line:gmatch("[^,]+") do
-		sen =sen:gsub("^%s", ""):gsub("%s*$", "")
-		lexr[#lexr+1] = sen
-		lexr[#lexr+1] = sen:lower()
-		end
-	end
-pipe:lexicon("#Region", lexr)
-
-lexi ={}
-for line in io.lines("Lexiques/Islands.txt") do
-	for sen in line:gmatch("[^,]+") do
-		sen =sen:gsub("^%s", ""):gsub("%s*$", "")
-		lexi[#lexi+1] = sen
-		lexi[#lexi+1] = sen:lower()
-		end
-	end
-pipe:lexicon("#Island", lexi)
-
-lexo ={}
-for line in io.lines("Lexiques/Organizations.txt") do
-	for sen in line:gmatch("[^;]+") do
-		lexo[#lexo+1] = sen:gsub("%p", " %0 "):gsub("^%s", ""):gsub("%s*$", "")
-		end
-	end
-pipe:lexicon("#Organization", lexo)
-pipe:lexicon("#Possessif", {"her","his","theirs"})
-pipe:lexicon("#Demonstratif", {"her","him","them"})
-pipe:lexicon("#Pronoun", {"she","he","they"})
-pipe:lexicon("#Individual", {"individual", "person", "one of the", "one"})
-pipe:lexicon("#people", {"someone", "anyone"})
-pipe:lexicon("#Det", {"the"})
-pipe:lexicon("#Relation", {"parent", "parents", "father", "mother", "child", "children", "son", "sons", "daughter", "daughters", "brother", "brothers", "sister", "sisters", "cousin", "cousins", "aunt", "aunts", "uncle", "uncles", "wife", "husband"})
-pipe:lexicon("#Born", {"birth", "Born", "born", "Birth", "birth place"})
-pipe:lexicon("#QuestionMark", {"Who","who", "What", "Which", "Where", "When", "How", "Why"})
-pipe:lexicon("#Aliases", {"called", "known as", "Alias", "NickName", "named", "Aliases", "aliases", "alias"})
-pipe:lexicon("#Singular", {"is", "was", "has"})
-pipe:lexicon("#Plural", {"are", "were"})
-pipe:lexicon("#Past", {"was","were","did"})
-pipe:lexicon("#Present", {"is", "are", "does", "do"})
-pipe:lexicon("#Titles", {"Title", "Titles", "title", "titles"})
-pipe:lexicon("#Appearance", {"looks like","appearance",""})
-pipe:lexicon("#Politeness", {"Do you know","Hello","Hi"})
-pipe:lexicon("#Except", {"but", "But"})
-pipe:lexicon("#Some", {"a few", "some", "half"})
-pipe:lexicon("#All", {"All", "all", "Everyone", "Every one", "Every single one"  , "evenryone", "every one", "every single one" })
---Pattern Definitions
-
-pipe:pattern([[
-		[#VRB #Past|#Present]
-	]])
-pipe:pattern([[
-		[#Character #Title?? (#FirstName|#NickName) (#House|#SurName)?]
-	]])
-pipe:pattern([[
-		[#Place (Where|where) #VRB #Possess|#Pers|#Person #POS=VRB]
-	]])
- -- pipe:pattern([[
-		-- -- [#Subject #POS=VRB #Character #POS=VRB?]
-	 -- ]])
-pipe:pattern([[
-		[#Pers #Character|#Demonstratif|#Possessif|#Pronoun]
-	]])
-pipe:pattern([[
-		[#NQ How|What #VRB #Possess|#w]
-	]])
-pipe:pattern([[
-		[#PQuestion (Who|who) .* "?"]
-]])
- pipe:pattern([[
-		[#LoQuestion (Where|where) .* "?"]
-]])
-pipe:pattern([[
-		[#Wed (Married|married) to (#Person|#Pers|#Possess)]
-	]])
-pipe:pattern([[
-		[#People (who|Who) #VRB #POS=VRB #w ]
-]])
-pipe:pattern([[
-		[#Enum  (#Person|#Pers|#Alias|#Title) (and|","|";"#Enum)?]
-]])
-pipe:pattern([[
-		[#RelPossess (the #Relation of #Pers|#Possess) | (((#Character|#Possess) "'" s |#Possessif) #Relation)]
-]])
-pipe:pattern([[
-		[#Possess (the #w of #Pers|#Possess) | (((#Character|#Possess) "'" s |#Possessif) #w )]
-	]])
-pipe:pattern([[
-		[#Person ((Who|who) #VRB)? ((the)? #Individual (who is)?)? (#Wed|#RelPossess) #Person? (#VRB)?]
-	]])
-pipe:pattern([[
-		[#Enum #Possess (and|","|";"#Enum)?]
-]])
+pipe = dofile("pipeLine.lua")
 
 Link = dofile("exempleIndexBD.lua")
 Bd = dofile("exempleCharacterBD.lua")
@@ -144,10 +10,63 @@ function LocFetch(locations)
 	
 end
 
-function PossRetrieval(possess)
+function PossRetrieval(possess, isPast, isPlur)
 	local ret = {}
-	local whowat = PossWhoWat(possess)
-	
+	local tret =""
+	local piposs = pipe(possess)
+	local whot = {}
+	local who = piposs:tag2str("#Possessor")[1]
+	local wat = piposs:tag2str("#Possessed")[1]
+	if #pipe(who)["#RelPossess"]>0 then
+		whot = PossesWhoRetrieval(who)
+	else
+		local Chara = nil
+		if #pipe(who)["#Possessif"]>0 then
+			Chara = Bd[Link[contextp][1]]
+		else
+			Chara = Bd[Link[who][1]]
+		end
+		local pipwat = pipe(piposs:tag2str("#Possessed"))
+		print(#piposs["#HasPast"])
+		if #piposs["#Time"] > 0  then
+			print("2")
+		elseif #piposs["#Appearance"] >0 then
+			print("1")
+		elseif #piposs["#HasPast"] > 0 then 
+			local tag = ""
+			if #piposs["#TimeStamp"]>0 then
+				tag = pipwat[2][2]["name"]
+			else
+				tag = pipwat[1][2]["name"]
+			end	
+			if isPast == true or (#pipwat:tag2str("#TimeStamp")==1 and pipwat:tag2str("#TimeStamp")[1] == "former") then
+				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
+					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
+				end
+			elseif isPast == false or (#pipwat:tag2str("#TimeStamp")==1 and pipwat:tag2str("#TimeStamp")[1] == "current") then
+				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
+					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
+				end
+			elseif #pipwat:tag2str("#TimeStamp")>1 then 
+				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
+					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
+				end
+				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
+					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
+				end
+			end
+		else
+			local tag = pipwat[1][2]["name"]
+			for i=1, #Chara[tag:sub(tag:find("#")+1)], 1 do
+				ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][i]["value"]
+			end
+		end
+		if isPlur == true then
+			return table.concat(ret, ", ")
+		else
+			
+		end
+	end
 end
 
 -- Returns the Levenshtein distance between the two given strings
@@ -194,6 +113,7 @@ end
 
 function PossWhoWat(pos)
 	local ret = {}
+	print(pos)
 	ret["who"] = ""
 	ret["wat"] = ""
 	if pos:find(" of ") then
@@ -206,6 +126,7 @@ function PossWhoWat(pos)
 		else
 			ret["who"] = contextp
 			local sif = pipe(pos):tag2str("#Possessif")[1]
+			print(sif)
 			ret["wat"] = pos:sub(pos:find(sif)+sif:len()+1)
 		end
 	end
@@ -475,11 +396,11 @@ while quitting ~= true do
 		Charac = piped:tag2str("#Character")[1]
 		contextp = Charac
 	end
-	if #piped["#Possess"] == 1 then
+	if #piped["#WhatQuestion"] >0 then
 		local pos = piped:tag2str("#Possess")[1]
 		poswat = PossWhoWat(pos)["wat"]
 		reply = pos.." "
-		reply = reply .. piped:tag2str("#POS=VRB")[1].." "
+		reply = reply .. piped:tag2str("#VRB")[1].." ".. PossRetrieval(pos,#piped["#Past"]>0,#piped["#Plural"]>0)
 	end
 	 -- print (Charac)
 	if Charac then
@@ -495,28 +416,6 @@ while quitting ~= true do
 				-- end
 					reply = reply .. table.concat(relin["list"], ", ") .. "."
 			-- end
-		end
-			if #piped["#Aliases"] ~= 0 then
-				local ain = 1
-				while Bd[Charac]["Aliases"][ain] do
-					reply = reply .. Bd[Link[Charac][1]]["Aliases"][ain]["value"].. ", "
-					ain = ain +1
-				end
-			end
-		if piped:tag2str("#QuestionMark")[1]:lower() == "what" then
-			if #piped["#Titles"]>0 then
-				local tin =1
-				local tex =""
-				if #piped["#POS=VRB"] == #piped["#Present"] then
-					tex = "current"
-				else
-					tex= "former"
-				end
-				while Bd[Link[Charac][1]]["Titles"][tex][tin] do
-					reply = reply .. Bd[Link[Charac][1]]["Titles"][tex][tin]["value"].. ", "
-					tin = tin +1
-				end
-			end
 		end
 	end
 	reply = reply:gsub("( )(%p )", "%2")
