@@ -1,7 +1,6 @@
 pipe = dofile("pipeLine.lua")
--- math = require "Math"
 Link = dofile("exempleIndexBD.lua")
-Bd = dofile("exempleCharacterBD.lua")
+Bd = dofile("CharacterBD.lua")
 quitting = false
 math.randomseed(os.time())
 
@@ -14,25 +13,110 @@ end
 function PossRetrieval(possess, isPast, isPlur)
 	local ret = {}
 	local tret =""
-	local piposs = pipe(possess)
-	local whot = {}
-	local who = piposs:tag2str("#Possessor")[1]
-	local wat = piposs:tag2str("#Possessed")[1]
-	if #pipe(who)["#RelPossess"]>0 then
-		ret["sevChar"] = true
-		tret = ": "
-		whot = PossesWhoRetrieval(who)
-		for i=1, #whot["list"], 1 do
-			which = {}
-			tret = tret .. whot["list"][i] .."; "
-			local Chara = Bd[Link[whot["list"][i]][1]]
+	if possess then
+		local piposs = pipe(possess)
+		local whot = {}
+		local who = piposs:tag2str("#Possessor")[1]
+		local wat = piposs:tag2str("#Possessed")[1]
+		if #pipe(who)["#RelPossess"]>0 then
+			ret["sevChar"] = true
+			tret = ": "
+			whot = PossesWhoRetrieval(who)
+			for i=1, #whot["list"], 1 do
+				which = {}
+				tret = tret .. whot["list"][i] .."; "
+				local Chara = Bd[Link[whot["list"][i]][1]]
+				local pipwat = pipe(piposs:tag2str("#Possessed"))
+				if #piposs["#Time"] > 0  then
+					local tag = pipwat[1][2]["name"]
+					local tag2 = pipwat[2][2]["name"]
+					which[#which+1] = Charac[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)]
+				elseif #piposs["#Appearance"] >0 then
+					print("1")
+				elseif #piposs["#HasPast"] > 0 then 
+					local tag = ""
+					if #piposs["#Timestamp"]>0 then
+						tag = piposs[piposs["#Possessed"][1][2]][2]["name"]
+					else
+						tag = piposs[piposs["#Possessed"][1][1]][2]["name"]
+					end	
+					if (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "former") or isPast == true then
+						for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
+							ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
+						end
+					elseif (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "current") then
+						for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
+							ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
+						end
+					elseif #piposs:tag2str("#Timestamp")>1 then 
+						-- ret[#ret+1] = "former"
+						for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
+							ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
+						end
+						-- ret[#ret+1] = "current"
+						for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
+							ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
+						end
+					end
+				else
+					local tag = pipwat[1][2]["name"]
+					for i=1, #Chara[tag:sub(tag:find("#")+1)], 1 do
+						which[#which+1] = Chara[tag:sub(tag:find("#")+1)][i]["value"]
+					end
+				end
+				if isPlur == true then
+					if #which>0 then
+						tret= tret.. table.concat(which, ", ") 
+					else
+						tret = tret.. "UNKNOWN"
+					end
+					tret = tret.. "\n"
+				else
+					tret = tret .. which[math.random(#which)]
+				end
+			end
+		else
+			ret["sevChar"] = false
+			local Chara = nil
+			if #pipe(who)["#Possessif"]>0 then
+				Chara = Bd[Link[contextp][1]]
+			else
+				Chara = Bd[Link[who][1]]
+			end
 			local pipwat = pipe(piposs:tag2str("#Possessed"))
 			if #piposs["#Time"] > 0  then
-				local tag = pipwat[1][2]["name"]
-				local tag2 = pipwat[2][2]["name"]
-				which[#which+1] = Charac[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)]
+				local tag = piposs[piposs["#Possessed"][1][1]][2]["name"]
+				local tag2 = piposs[piposs["#Possessed"][1][2]][2]["name"]
+				for i=1, #Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)], 1 do
+					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)][i]["Period"]
+					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)][i]["value"]
+				end
 			elseif #piposs["#Appearance"] >0 then
-				print("1")
+				local rr =  "Eyes : "
+				if #Chara["Appearance"]["Traits"]["Eyes"] == 0 then 
+					rr  = rr.."UNKNOWN"
+				else
+					for i =1, #Chara["Appearance"]["Traits"]["Eyes"], 1 do
+						rr = rr..Chara["Appearance"]["Traits"]["Eyes"][i]["value"]..", "
+					end
+				end
+				rr= rr.." Skin: "
+				if #Chara["Appearance"]["Traits"]["Skin"] == 0 then 
+					rr  = rr.."UNKNOWN"
+				else
+					for i =1, #Chara["Appearance"]["Traits"]["Skin"], 1 do
+						rr = rr..Chara["Appearance"]["Traits"]["Skin"][i]["value"]..", "
+					end
+				end
+				rr= rr..", Hair : "
+				if #Chara["Appearance"]["Traits"]["Hair"]==0 then
+					rr = rr .."UNKNOWN"
+				else
+					for i =1, #Chara["Appearance"]["Traits"]["Hair"], 1 do
+						rr = rr..Chara["Appearance"]["Traits"]["Hair"][i]["value"]..", "
+					end
+				end
+				ret[#ret +1] = rr
 			elseif #piposs["#HasPast"] > 0 then 
 				local tag = ""
 				if #piposs["#Timestamp"]>0 then
@@ -40,11 +124,11 @@ function PossRetrieval(possess, isPast, isPlur)
 				else
 					tag = piposs[piposs["#Possessed"][1][1]][2]["name"]
 				end	
-				if (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "former") or isPast == true then
+				if (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "former") or (isPast == true and #piposs:tag2str("#Timestamp")==0)then
 					for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
 						ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
 					end
-				elseif (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "current") then
+				elseif (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "current") or (isPast == false and #piposs:tag2str("#Timestamp")==0)then
 					for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
 						ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
 					end
@@ -60,103 +144,28 @@ function PossRetrieval(possess, isPast, isPlur)
 				end
 			else
 				local tag = pipwat[1][2]["name"]
-				for i=1, #Chara[tag:sub(tag:find("#")+1)], 1 do
-					which[#which+1] = Chara[tag:sub(tag:find("#")+1)][i]["value"]
+				if Chara[tag:sub(tag:find("#")+1)] then
+					for i=1, #Chara[tag:sub(tag:find("#")+1)], 1 do
+						ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][i]["value"]
+					end
 				end
 			end
 			if isPlur == true then
-				if #which>0 then
-					tret= tret.. table.concat(which, ", ") 
+				if #ret > 0 then
+					return table.concat(ret, ", ")
 				else
-					tret = tret.. "UNKNOWN"
+					return "UNKNOWN"
 				end
-				tret = tret.. "\n"
 			else
-				tret = tret .. which[math.random(#which)]
+				if #ret>0 then
+					return ret[math.random(#ret)]
+				else
+					return "UNKNOWN"
+				end
 			end
 		end
 	else
-		ret["sevChar"] = false
-		local Chara = nil
-		if #pipe(who)["#Possessif"]>0 then
-			Chara = Bd[Link[contextp][1]]
-		else
-			Chara = Bd[Link[who][1]]
-		end
-		local pipwat = pipe(piposs:tag2str("#Possessed"))
-		if #piposs["#Time"] > 0  then
-			local tag = piposs[piposs["#Possessed"][1][1]][2]["name"]
-			local tag2 = piposs[piposs["#Possessed"][1][2]][2]["name"]
-			for i=1, #Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)], 1 do
-				ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)][i]["Period"]
-				ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][tag2:sub(tag2:find("#")+1)][i]["value"]
-			end
-		elseif #piposs["#Appearance"] >0 then
-			local rr =  "Eyes : "
-			if #Chara["Appearance"]["Traits"]["Eyes"] == 0 then 
-				rr  = rr.."UNKNOWN"
-			else
-				for i =1, #Chara["Appearance"]["Traits"]["Eyes"], 1 do
-					rr = rr..Chara["Appearance"]["Traits"]["Eyes"][i]["value"]..", "
-				end
-			end
-			rr= rr.." Skin: "
-			if #Chara["Appearance"]["Traits"]["Skin"] == 0 then 
-				rr  = rr.."UNKNOWN"
-			else
-				for i =1, #Chara["Appearance"]["Traits"]["Skin"], 1 do
-					rr = rr..Chara["Appearance"]["Traits"]["Skin"][i]["value"]..", "
-				end
-			end
-			rr= rr..", Hair : "
-			if #Chara["Appearance"]["Traits"]["Hair"]==0 then
-				rr = rr .."UNKNOWN"
-			else
-				for i =1, #Chara["Appearance"]["Traits"]["Hair"], 1 do
-					rr = rr..Chara["Appearance"]["Traits"]["Hair"][i]["value"]..", "
-				end
-			end
-			ret[#ret +1] = rr
-		elseif #piposs["#HasPast"] > 0 then 
-			local tag = ""
-			if #piposs["#Timestamp"]>0 then
-				tag = piposs[piposs["#Possessed"][1][2]][2]["name"]
-			else
-				tag = piposs[piposs["#Possessed"][1][1]][2]["name"]
-			end	
-			if (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "former") or (isPast == true and #piposs:tag2str("#Timestamp")==0)then
-				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
-					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
-				end
-			elseif (#piposs:tag2str("#Timestamp")==1 and piposs:tag2str("#Timestamp")[1] == "current") or (isPast == false and #piposs:tag2str("#Timestamp")==0)then
-				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
-					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
-				end
-			elseif #piposs:tag2str("#Timestamp")>1 then 
-				-- ret[#ret+1] = "former"
-				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["former"], 1 do
-					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["former"][i]["value"]
-				end
-				-- ret[#ret+1] = "current"
-				for i = 1, #Chara[tag:sub(tag:find("#")+1)]["current"], 1 do
-					ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)]["current"][i]["value"]
-				end
-			end
-		else
-			local tag = pipwat[1][2]["name"]
-			for i=1, #Chara[tag:sub(tag:find("#")+1)], 1 do
-				ret[#ret+1] = Chara[tag:sub(tag:find("#")+1)][i]["value"]
-			end
-		end
-		if isPlur == true then
-			if #ret > 0 then
-				return table.concat(ret, ", ")
-			else
-				return "UNKNOWN"
-			end
-		else
-			return ret[math.random(#ret)]
-		end
+	return ""
 	end
 end
 
@@ -237,7 +246,6 @@ function Whois(persons)
 	while piperson[1][parc]["name"] ~="#Person" do parc = parc +1 end
 	length = piperson[1][parc]["length"]
 	while dex > 0 do 
-	print("LAPATA")
 		local lys = piperson:tag2str("#Person")[dex]
 		if #piperson["#Wed"]>0 then
 			local wedin = 1
@@ -256,21 +264,22 @@ function Whois(persons)
 			ret["inpersons"] = ret["inpersons"] + whos["inwedding"]
 			dex = dex - whos["inwedding"]
 		end
-		if #piperson["#Possess"] >0 then
+		if #piperson["#RelPossess"] >0 then
 			local posin = 1
 			parc = 1
 			local p = length
 			while piperson["#Posess"][parc] do 
-				if p > piperson["#Possess"][parc][1] then 
-					p = piperson["#Posess"][parc][1]
+				if p > piperson["#RelPossess"][parc][1] then 
+					p = piperson["#RelPossess"][parc][1]
 					posin = parc
 				end
 				parc = parc +1
 			end
-			local poss = piperson:tag2str("#Possess")[1]
+			local poss = piperson:tag2str("#RelPossess")[1]
 			prec = persons:sub(persons:find(poss) + poss:len())
 			whos = PossesWhoRetrieval(poss)
-			print(table.concat(whos["list"], ""))
+			--print(#whos["list"])
+			--print(table.concat(whos["list"], ""))
 		end
 		if #whos["list"] == 1 then
 			ret["list"][#ret["list"]+1] = whos["list"][1]
@@ -403,17 +412,17 @@ end
 
 function PossesWhoRetrieval(pos)
 	local ret ={}
+	local pipos = pipe(pos)
 	ret["list"] = {}
 	ret["inposses"] =0
 	local who = {}
 	who["inpossess"]= 0
 	who["list"] = {}
-	local whowat = PossWhoWat(pos)
-	who["list"][1] = whowat["who"]
-	local wat = whowat["wat"]
-	if wat:sub(wat:len())=="s"then
-		wat = wat:sub(1, wat:len()-1)
-	end
+	who["list"][1] = pipos:tag2str("#Possessor")[1]
+	local wat = pipos:tag2str("#Relation")[1]
+	-- if wat:sub(wat:len())=="s"then
+		-- wat = wat:sub(1, wat:len()-1)
+	-- end
 	local child = wat =="child"
 	local parent = wat == "parent"
 	if #pipe(who["list"][1])["#Possess"]> 0 then
@@ -424,13 +433,13 @@ function PossesWhoRetrieval(pos)
 	local i =1
 	while who["list"][j] do	
 		local whob = who["list"][j]
-		print("kek")
-		print(whob)
-		print(wat)
+		if #pipe(whob)["#Possessif"] == 1 then whob = contextp end
 		while Bd[Link[whob][1]]["Relation"][i] do
 			if wat == "children" then
 				if (Bd[Link[who][1]]["Relation"][i]["lien"]:find("son") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("son") )
-					or (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") ) then
+					or (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("child") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") )
+					or (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") )
+					then
 					if table.concat(ret, " "):find(Bd[Link[whob][1]]["Relation"][i]["Name"]) == nil then
 						ret["list"][#ret["list"]+1] = Bd[Link[whob][1]]["Relation"][i]["Name"]
 					end
@@ -460,11 +469,23 @@ function PossesWhoRetrieval(pos)
 		end
 		j = j+1
 	end
-	print(#ret["list"])
 	return ret
 end
 
+function openWho(whopen)
+	-- if whopen then
+		-- local pipopen = pipe(whopen)
+		
+	-- else
+		-- return ""
+	-- end
+end
+
 contextp = nil
+bounce = false;
+contextq =	{}
+contextq["piped"] = nil
+contextq["str"] = nil
 print([[Hello, i'm AskA.S.O.I.A.F., your chatbot dedicated to A Song Of Ice And Fire.]])
 print([[What can i do for you today ?]])
 while quitting ~= true do
@@ -473,9 +494,13 @@ while quitting ~= true do
 	local Charac = nil
 	reply = ""
 	base = {}
-	answer = io.read()
-	piped = pipe(answer:gsub("%p", " %0 "))
-	print(piped)
+	if bounce == false then
+		answer = io.read():gsub("%p", " %0 ")
+	else
+		bounce = false
+	end
+	piped = pipe(answer)
+	--print(piped)
 	quitting = #piped["#Quit"]>0
 	if #piped["#Character"] == 0 then
 		if #piped["#Pers"] == 0 then
@@ -490,26 +515,42 @@ while quitting ~= true do
 	
 	if #piped["#WhatQuestion"] >0 then
 		local pos = piped:tag2str("#Possess")[1]
-		reply = pos.. " " .. piped:tag2str("#VRB")[1] .. " " .. PossRetrieval(pos,#piped["#Past"]>0,#piped["#Plural"]>0)
-	end
-	 -- print (Charac)
-	if Charac then
-		if #piped["#Person"] > 0  then 
-			-- if #piped["#Relation"] >0 then
-				print(table.concat(piped:tag2str("#Person"), " "))
-				local relin = Whois(piped:tag2str("#Person")[#piped["#Person"]])
-				local i = 1
-				-- print (Charac)
-				-- while Bd[Charac]["Relation"][relin]["lien"]:find(poswat) == nil and relin <= #Bd[Charac]["Relation"] do
-					-- print(relin)
-					-- relin = relin +1 
-				-- end
-					reply = reply .. table.concat(relin["list"], ", ") .. "."
-			-- end
+		local trep = PossRetrieval(pos,#piped["#Past"]>0,#piped["#Plural"]>0)
+		if trep == "UNKNOWN" then
+			reply = "I don't know about this information, sorry"
+		elseif trep == "" then 
+			reply = "This question doesn't make any sense"
+		else
+			reply = pos.. " " .. piped:tag2str("#VRB")[1] .. " " .. trep
 		end
+		contextq = answer
+	elseif #piped["#Person"] > 0  then 
+		-- if #piped["#Relation"] >0 then
+			--print(table.concat(piped:tag2str("#Person"), " "))
+			local relin = Whois(piped:tag2str("#Person")[#piped["#Person"]])
+			local i = 1
+			-- print (Charac)
+			-- while Bd[Charac]["Relation"][relin]["lien"]:find(poswat) == nil and relin <= #Bd[Charac]["Relation"] do
+				-- print(relin)
+				-- relin = relin +1 
+			-- end
+			if #piped["#RelPossess"]>0 then
+				reply = reply.. piped:tag2str("#RelPossess")[#piped["#RelPossess"]].." " .. piped:tag2str("#VRB")[1].. " "
+			end
+				reply = reply .. table.concat(relin["list"], ", ")
+		-- end
+		contextq["piped"] = piped
+		contextq["str"] = answer
+	elseif contextq["piped"] and contextq["str"] and piped["#Quit"] == 0 then
+		local pipeq = contextq["piped"]
+		local pers = piped:tag2str("#Character")[1]
+		answer =contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
+		bounce = true
 	end
-	reply = reply:gsub("( )(%p )", "%2")
-	print (reply)
+	if bounce == false then
+		reply = reply:gsub("( )(%p )", "%2")
+		print (reply..".")
+	end
 end
 
 print([[I'm glad that we could have a talk.

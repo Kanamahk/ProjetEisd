@@ -73,10 +73,14 @@ pipe:lexicon("#Individual", {"individual", "person", "one of the", "one"})
 pipe:lexicon("#people", {"someone", "anyone"})
 pipe:lexicon("#Relation", {"parent", "parents", "father", "mother", "child", "children", "son", "sons", "daughter", "daughters", "brother", "brothers", "sister", "sisters", "cousin", "cousins", "aunt", "aunts", "uncle", "uncles", "wife", "husband"})
 pipe:lexicon("#Born", {"birth", "Born", "born", "Birth"})
-pipe:lexicon("#Death", {"sentences to death","sentenced to death","sentence to death", "dead","death","Dead","Death","died", "die", "dies"})
+pipe:lexicon("#Died", {"sentences to death","sentenced to death","sentence to death", "dead","death","Dead","Death","died", "die", "dies"})
 pipe:lexicon("#Date", {"date", "time", "age"})
-pipe:lexicon("#Place", {"location", "place", "castle", "region", "country", "isle", "island"})
-pipe:lexicon("#House", {"house", "House", "Family","family"})
+pipe:lexicon("#Place", {"location", "place", "places", "castle", "region", "country", "isle", "island"})
+pipe:lexicon("#House", {"houses", "Houses","house", "House", "Family","family"})
+--pipe:lexicon("#Royal House", {"royal house", "king house"})
+pipe:lexicon("#Race", {"race", "specie", "races", "Race", "Races"})
+pipe:lexicon("#Culture", {"culture", "cultures"})
+pipe:lexicon("#Gender", {"sex", "gender"})
 pipe:lexicon("#Appearance", {"looks like","appearance","look"})
 pipe:lexicon("#Titles", {"Title", "Titles", "title", "titles"})
 pipe:lexicon("#Allegiance", {"allegiance", "Allegiance","allegiances", "Allegiances", "organization","Organization", "organizations","Organizations",})
@@ -118,7 +122,9 @@ pipe:pattern([[
 		[#Wed (Married|married) to (#Person|#Pers|#Possess)]
 	]])--reconnaissance d'une relation marital 
 pipe:pattern([[
-		[#RelPossess (the #Relation of #Pers|#RelPossess) | (((#Character|#RelPossess) "'" s |#Possessif) #Relation)]
+		[#RelPossess (the #Relation of 
+			[#Possessor #Pers|#RelPossess]) | (
+			[#Possessor #Character|#RelPossess|#Possessif]("'" s)? #Relation)]
 	]])--reconnaissance d'un ou plusieur personnage a partir de leur relation avec un autre
 pipe:pattern([[
 		[#PosHow How|how #VRB?	]
@@ -126,26 +132,32 @@ pipe:pattern([[
 pipe:pattern([[
 		[#Possess 
 			(the [#Possessed	
-					[#HasPast #Timestamp? 
+					[#HasPast #Timestamp? ((and|",") #Timestamp)? 
 						(#Titles
 						|#House
 						|#Allegiance)
 					]
-					|[#Time (#Born|#Death) #Date|#Place|#House]
+					|[#Time (#Born|#Died) (#Date|#Place|#House)]
 					|#Appearance
+					|#Gender
+					|#Culture
+					|#Race
 					|#Aliases
 					|[#Physical #Appearance|#BodPart]
 					|#Personality
 					|#Passion
 				] of [#Possessor #Pers|#Possess]) | 
 			([#Possessor (#Character|#Possess|#Possessif)] ("'" s)?  [#Possessed	 
-					[#Time (#Born|#Death) #Date|#Place|#House]
-					|[#HasPast #Timestamp? 
+					[#Time (#Born|#Died) (#Date|#Place|#House)]
+					|[#HasPast #Timestamp? ((and|",") #Timestamp)? 
 						(#Titles
 						|#House
 						|#Allegiance)
 					]
 					|#Aliases
+					|#Gender
+					|#Culture
+					|#Race
 					|#Appearance
 					|#Personality
 					|#Passion
@@ -162,7 +174,7 @@ pipe:pattern([[
 		-- ]
 -- ]])--enumaraiton d'elements TODO
 pipe:pattern([[
-		[#Dates 
+		[#Date 
 			[#Annee 
 				#d
 				>(#IndiceTemp)
@@ -170,7 +182,7 @@ pipe:pattern([[
 		]
 ]])--reconnaissances de dates
 pipe:pattern([[
-    [#Places
+    [#Place
             #castle
             | #city
             | #isle
