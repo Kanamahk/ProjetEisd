@@ -141,8 +141,20 @@ pipe:pattern([[
 					|[#Physical #Appearance|#BodPart]
 					|#Personality
 					|#Passion
-				] of [#Possessor #Pers|#Possess]) | 
-			([#Possessor (#Character|#Possess|#Possessif)] ("'" s)?  [#Possessed	 
+				] (#linkEnum [#EnumAt [#Time (#Born|#Died) (#Date|#Place|#House)]
+					|[#HasPast #Timestamp? ((#linkEnum|or) #Timestamp)?? 
+						(#Titles
+						|#House
+						|#Allegiance)
+					]
+					|#Aliases
+					|#Gender
+					|#Culture
+					|#Race
+					|#Appearance
+					|#Personality
+					|#Passion])* of [#Possessor #Pers|#RelPossess] [#PossEnum (#linkEnum [#PossInEnum (#Pers|#RelPossess)])]*) | 
+			([#Possessor (#Character|#RelPossess|#Possessif)] [#PossEnum (#linkEnum [#PossInEnum (#Character|#RelPossess|#Possessif)])]* ("'" s)?  [#Possessed	 
 					[#Time (#Born|#Died) (#Date|#Place|#House)]
 					|[#HasPast #Timestamp? ((#linkEnum|or) #Timestamp)?? 
 						(#Titles
@@ -157,7 +169,19 @@ pipe:pattern([[
 					|#Personality
 					|#Passion
 					
-				])
+				] (#linkEnum [#EnumAt [#Time (#Born|#Died) (#Date|#Place|#House)]
+					|[#HasPast #Timestamp? ((#linkEnum|or) #Timestamp)?? 
+						(#Titles
+						|#House
+						|#Allegiance)
+					]
+					|#Aliases
+					|#Gender
+					|#Culture
+					|#Race
+					|#Appearance
+					|#Personality
+					|#Passion])*)
 		]
 	]])--reconnaissance d'un attribut d'un personnage
 -- pipe:pattern([[
@@ -170,8 +194,8 @@ pipe:pattern([[
 			[#EnumRel 
 				#Relation (#linkEnum #Relation)*
 				] of 
-			[#PossEnum [#Possessor (#Pers|#RelPossess)] (#linkEnum #Possessor)*]) | (
-			[#PossEnum [#Possessor (#Character|#RelPossess|#Possessif)] (#linkEnum #Possessor)*]("'" s)? 
+			[#Possessor (#Pers|#RelPossess)][#PossEnum (#linkEnum [#PossInEnum (#Pers|#RelPossess)])]* ) | (
+			[#Possessor (#Character|#RelPossess|#Possessif) ][#PossEnum (#linkEnum [#PossInEnum (#Character|#RelPossess|#Possessif)])]*("'" s)? 
 				[#EnumRel 
 					#Relation (#linkEnum #Relation)*
 				])
@@ -200,7 +224,7 @@ pipe:pattern([[
 	[#WhatQuestion (What|what) ]
 ]])--reconnaissance de toutes les question en What TODO
 pipe:pattern([[
-	[#PosWhat (What|what) #VRB [#Possess] ]
+	[#PosWhat (What|what) #VRB #Possess (#linkEnum #Possess)*]
 ]])--reconnaissance de question cencernant des attributs de personnages
 -- pipe:pattern([[ [#Pers #Pers|#Person] ]])
 pipe:pattern([[

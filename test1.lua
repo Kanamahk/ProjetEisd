@@ -634,6 +634,9 @@ function RelpossesSimpleRetrieve (pos)
 			ret[#ret+1] = Bd[Link[chara][1]]["Relation"][i]["Name"]
 		end
 	end
+	if #ret == 0 then
+	ret[1]="I don't know about this information"
+	end
 	return ret
 end
 
@@ -736,14 +739,41 @@ while quitting ~= true do
 		contextq["piped"] = piped
 		contextq["str"] = answer
 	elseif #piped["#WhatQuestion"] >0 then
-		local pos = piped:tag2str("#Possess")[1]
-		local trep = PossRetrieval(pos,#piped["#Past"]>0,#piped["#Plural"]>0)
-		if trep == "UNKNOWN" then
-			reply = "I don't know about this information, sorry"
-		elseif trep == "" then 
-			reply = "This question doesn't make any sense"
-		else
-			reply = pos.. " " .. piped:tag2str("#VRB")[1] .. " " .. trep
+		for i=1, #piped["#Possess"], 1 do
+			local pos = piped:tag2str("#Possess")[i]
+			local sors ={}
+			sors[1] = pipe(pos):tag2str("#Possessor")[1]
+			if #pipe(pos)["#PossEnum"] >0 then
+				local popo = pipe(pos)
+				for j=1, #popo["#PossInEnum"], 1 do
+					sors[#sors +1] = popo:tag2str("#PossInEnum")[j]
+				end
+			end
+			local begin = pos:sub(1, pos:find(sors[1]) -1 )
+			local final = pos:sub(pos:find(sors[#sors]) + sors[#sors]:len())
+			for j=1, #sors, 1 do
+				local atrib = begin .. sors[j] ..final
+				local buts = {}
+				buts[1] = pipe(atrib):tag2str("#Possessed")[1]
+				if #pipe(atrib)["#EnumAt"] > 0 then
+					local popo = pipe(atrib)
+					for k=1, #popo["#EnumAt"], 1 do
+						buts[#buts +1] = popo:tag2str("#EnumAt")[k]
+					end
+				end
+				local start = atrib:sub(1, atrib:find(buts[1])-1)
+				local ending = atrib:sub(atrib:find(buts[#buts]) + buts[#buts]:len())
+				for k=1, #buts, 1 do
+					local trep = PossRetrieval(start .. buts[k] .. ending,#piped["#Past"]>0,#piped["#Plural"]>0)
+					if trep == "UNKNOWN" then
+						print( "I don't know about this information, sorry")
+					elseif trep == "" then 
+						print( "This question doesn't make any sense")
+					else
+						print( start..buts[k]..ending .. " " .. piped:tag2str("#VRB")[1] .. " " .. trep)
+					end
+				end
+			end
 		end
 		contextq["piped"] = piped
 		contextq["str"] = answer
@@ -751,69 +781,102 @@ while quitting ~= true do
 		if #piped["#RelPossess"] == 1 then
 				local repattern = nil
 				local relpiposess = pipe(piped:tag2str("#RelPossess")[1])
-				if #relpiposess["#Relation"] > 1 then
-					reply = table.concat(PossesMultiRel(piped:tag2str("#RelPossess")[1],piped, answer), ".\n")
+				if #relpiposess["#PossEnum"] > 0 then
+					local sors = {}
+					sors[1] = relpiposess:tag2str("#Possessor")[1]
+					for i=1, #relpiposess["#PossEnum"], 1 do
+						sors[#sors+1] = relpiposess:tag2str("#PossInEnum")[i]
+					end
+					local rel = piped:tag2str("#RelPossess")[1]
+					local start = rel:sub(1, rel:find(sors[1])-1)
+					local ending = rel:sub(rel:find(sors[#sors])+sors[#sors]:len())
+					for i=1, #sors, 1 do
+						local actpossess = start .. sors[i] .. ending
+						if #pipe(actpossess)["#Relation"] > 1 then
+							print( table.concat(PossesMultiRel(actpossess,piped), ".\n"))
+						else
+							print( actpossess ..": ".. table.concat(RelpossesSimpleRetrieve(actpossess), ", "))
+						end
+					end
 				else
-					reply = piped:tag2str("#RelPossess")[1] .." ".. table.concat(RelpossesSimpleRetrieve(relpiposess), ", ")
+					if #relpiposess["#Relation"] > 1 then
+						reply = table.concat(PossesMultiRel(piped:tag2str("#RelPossess")[1],piped), ".\n")
+					else
+						reply = piped:tag2str("#RelPossess")[1] ..": ".. table.concat(RelpossesSimpleRetrieve(relpiposess), ", ")
+					end
 				end
 		 elseif #piped["#RelPossess"] > 1 then 
 			local repList = {}
 			for i= #piped["#RelPossess"], 1, -1 do 
-				local poss = piped:tag2str("#RelPossess")[i]
-				local possor = piped:tag2str("#Possessor")[i]
-				local piposor = pipe(possor)
-				if #piposor["#RelPossess"] >1 then
-					local character = {}
-					for j=1, #piposor["#RelPossess"], 1 do
-						if #character ==0 then
-							local actpos = piposor:tag2str("#RelPossess")[j]
-							if #pipe(actpos)["#Relation"]>1 then
-								repList = PossesMultiRel(actpos, piped)
-								for k=1, #repList, 1 do
-									print (repList[k])
-									local re = pipe(repList[k])
-									for n = 2, #re["#Character"], 1 do
-										character[#character+1] = re:tag2str("#Character")[n]
-									end
-								end
-							else
-								character = RelPossessRetrieve(actpos)
-							end
-						else
-							local charaparc = character
-							character = {}
-							local actpos = piposor:tag2str("#RelPossess")[j]
-							local soremplace = piposor:tag2str("#Possessor")[#piposor["#Possessor"]]
-							local start = actpos:sub(1,actpos:find(soremplace)-1)
-							local ending = actpos:sub(actpos:find(soremplace) + soremplace:len())
-							for k = 1, #charaparc, 1 do
-								local actchar = charaparc[k]
-								local treat = start .. actchar .. ending
-								if #pipe(treat)["#Relation"] >1 then
-									repList = PossesMultiRel(treat, piped)
-									for l=1, #repList, 1 do
-										print(repList[l])
-										local re = pipe(repList[l])
-										for n=2, #re["#Character"], 1 do
+				local gloposs = piped:tag2str("#RelPossess")[i]
+				local sors ={}
+				sors[1] = piped:tag2str("#Possessor")[i]
+				if #pipe(gloposs)["#PossEnum"]>0 then
+					local glopiped = pipe(gloposs)
+					for z =1, #glopiped["#PossEnum"], 1 do
+						sors[#sors+1] = glopiped:tag2str("#PossInEnum")[z]
+					end
+				end
+				local begin = gloposs:sub(1, gloposs:find(sors[1])-1)
+				local final = gloposs:sub(gloposs:find(sors[#sors]) + sors[#sors]:len())
+				for z =1 , #sors, 1 do
+					local poss = begin.. sors[z] ..final
+					local possor = sors[z]
+					local piposor = pipe(possor)
+					if #piposor["#RelPossess"] >1 then
+						local character = {}
+						for j=1, #piposor["#RelPossess"], 1 do
+							if #character ==0 then
+								local actpos = piposor:tag2str("#RelPossess")[j]
+								if #pipe(actpos)["#Relation"]>1 then
+									repList = PossesMultiRel(actpos, piped)
+									for k=1, #repList, 1 do
+										print (repList[k])
+										local re = pipe(repList[k])
+										for n = 2, #re["#Character"], 1 do
 											character[#character+1] = re:tag2str("#Character")[n]
 										end
 									end
 								else
-									local cra = RelpossesSimpleRetrieve(treat)
-									for n=1, #cra, 1 do
-										character[#character] = cra[n]
+									character = RelPossessRetrieve(actpos)
+								end
+							else
+								local charaparc = character
+								character = {}
+								local actpos = piposor:tag2str("#RelPossess")[j]
+								local soremplace = piposor:tag2str("#Possessor")[#piposor["#Possessor"]]
+								local start = actpos:sub(1,actpos:find(soremplace)-1)
+								local ending = actpos:sub(actpos:find(soremplace) + soremplace:len())
+								for k = 1, #charaparc, 1 do
+									local actchar = charaparc[k]
+									local treat = start .. actchar .. ending
+									if #pipe(treat)["#Relation"] >1 then
+										repList = PossesMultiRel(treat, piped)
+										for l=1, #repList, 1 do
+											print(repList[l])
+											local re = pipe(repList[l])
+											for n=2, #re["#Character"], 1 do
+												character[#character+1] = re:tag2str("#Character")[n]
+											end
+										end
+									else
+										local cra = RelpossesSimpleRetrieve(treat)
+										for n=1, #cra, 1 do
+											character[#character] = cra[n]
+										end
 									end
 								end
 							end
 						end
-					end
-					i = i-#piposor["#RelPossess"] +1
-				else
-					if #pipe(poss)["#Relation"] >1 then
-						print (table.concat(RelPossessRetrieve(poss, piped), ".\n"))
+						i = i-#piposor["#RelPossess"] +1
 					else
-						print (poss .. ": ".. table.concat(RelpossesSimpleRetrieve(poss), ", ").. ".")
+						if #pipe(poss)["#Relation"] >1 then
+							print (table.concat(RelPossessRetrieve(poss, piped), ".\n"))
+						else
+							print (poss .. ": ".. table.concat(RelpossesSimpleRetrieve(poss), ", ").. ".")
+						end
 					end
+					
 				end
 			end
 		 end
