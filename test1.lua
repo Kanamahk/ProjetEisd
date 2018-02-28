@@ -743,14 +743,70 @@ while quitting ~= true do
 			local pos = piped:tag2str("#Possess")[i]
 			local sors ={}
 			sors[1] = pipe(pos):tag2str("#Possessor")[1]
+			local begin = pos:sub(1, pos:find(sors[1]) -1 )
 			if #pipe(pos)["#PossEnum"] >0 then
 				local popo = pipe(pos)
 				for j=1, #popo["#PossInEnum"], 1 do
 					sors[#sors +1] = popo:tag2str("#PossInEnum")[j]
 				end
 			end
-			local begin = pos:sub(1, pos:find(sors[1]) -1 )
 			local final = pos:sub(pos:find(sors[#sors]) + sors[#sors]:len())
+			local temp = sors
+			sors = {}
+			for j=1, #temp, 1 do
+				if #pipe(temp[j])["#RelPossess"]>0 then
+					local piptreat = pipe(temp[j])
+					local character = {}
+					for v=1, #piposor["#RelPossess"], 1 do
+						if #character ==0 then
+							local actpos = piposor:tag2str("#RelPossess")[v]
+							if #pipe(actpos)["#Relation"]>1 then
+								repList = PossesMultiRel(actpos, piped)
+								for k=1, #repList, 1 do
+									print (repList[k])
+									local re = pipe(repList[k])
+									for n = 2, #re["#Character"], 1 do
+										character[#character+1] = re:tag2str("#Character")[n]
+									end
+								end
+							else
+								character = RelPossessRetrieve(actpos)
+							end
+						else
+							local charaparc = character
+							character = {}
+							local actpos = piposor:tag2str("#RelPossess")[v]
+							local soremplace = piposor:tag2str("#Possessor")[#piposor["#Possessor"]]
+							local start = actpos:sub(1,actpos:find(soremplace)-1)
+							local ending = actpos:sub(actpos:find(soremplace) + soremplace:len())
+							for k = 1, #charaparc, 1 do
+								local actchar = charaparc[k]
+								local treat = start .. actchar .. ending
+								if #pipe(treat)["#Relation"] >1 then
+									repList = PossesMultiRel(treat, piped)
+									for l=1, #repList, 1 do
+										print(repList[l])
+										local re = pipe(repList[l])
+										for n=2, #re["#Character"], 1 do
+											character[#character+1] = re:tag2str("#Character")[n]
+										end
+									end
+								else
+									local cra = RelpossesSimpleRetrieve(treat)
+									for n=1, #cra, 1 do
+										character[#character] = cra[n]
+									end
+								end
+							end
+						end
+					end
+					for v = 1, #character, 1 do
+						sors[#sors+1]=character[v]
+					end
+				else
+					sors[#sors+1] = temp[j]
+				end
+			end
 			for j=1, #sors, 1 do
 				local atrib = begin .. sors[j] ..final
 				local buts = {}
@@ -778,7 +834,9 @@ while quitting ~= true do
 		contextq["piped"] = piped
 		contextq["str"] = answer
 	elseif #piped["#Person"] > 0  then 
-		if #piped["#RelPossess"] == 1 then
+		if #piped["#Wed"] >0 then
+			
+		elseif #piped["#RelPossess"] == 1 then
 				local repattern = nil
 				local relpiposess = pipe(piped:tag2str("#RelPossess")[1])
 				if #relpiposess["#PossEnum"] > 0 then
@@ -800,9 +858,9 @@ while quitting ~= true do
 					end
 				else
 					if #relpiposess["#Relation"] > 1 then
-						reply = table.concat(PossesMultiRel(piped:tag2str("#RelPossess")[1],piped), ".\n")
+						print( table.concat(PossesMultiRel(piped:tag2str("#RelPossess")[1],piped), ".\n"))
 					else
-						reply = piped:tag2str("#RelPossess")[1] ..": ".. table.concat(RelpossesSimpleRetrieve(relpiposess), ", ")
+						print( piped:tag2str("#RelPossess")[1] ..": ".. table.concat(RelpossesSimpleRetrieve(relpiposess), ", "))
 					end
 				end
 		 elseif #piped["#RelPossess"] > 1 then 
@@ -811,13 +869,13 @@ while quitting ~= true do
 				local gloposs = piped:tag2str("#RelPossess")[i]
 				local sors ={}
 				sors[1] = piped:tag2str("#Possessor")[i]
+				local begin = gloposs:sub(1, gloposs:find(sors[1])-1)
 				if #pipe(gloposs)["#PossEnum"]>0 then
 					local glopiped = pipe(gloposs)
 					for z =1, #glopiped["#PossEnum"], 1 do
 						sors[#sors+1] = glopiped:tag2str("#PossInEnum")[z]
 					end
 				end
-				local begin = gloposs:sub(1, gloposs:find(sors[1])-1)
 				local final = gloposs:sub(gloposs:find(sors[#sors]) + sors[#sors]:len())
 				for z =1 , #sors, 1 do
 					local poss = begin.. sors[z] ..final
@@ -888,7 +946,7 @@ while quitting ~= true do
 	end
 	if bounce == false then
 		reply = reply:gsub("( )(%p )", "%2")
-		print (reply..".")
+		--print (reply..".")
 	end
 end
 

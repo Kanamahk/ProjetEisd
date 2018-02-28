@@ -117,9 +117,7 @@ pipe:pattern([[
 pipe:pattern([[
 		[#Pers #Character|#Demonstratif|#Possessif|#Pronoun]
 	]])--reconnaissance de token qui font reference a des un ou des personnage dont on a eventuellement parlé
-pipe:pattern([[
-		[#Wed (Married|married) to (#Person|#Pers|#Possess)]
-	]])--reconnaissance d'une relation marital 
+
 
 pipe:pattern([[
 		[#PosHow How|how #VRB?	]
@@ -184,11 +182,6 @@ pipe:pattern([[
 					|#Passion])*)
 		]
 	]])--reconnaissance d'un attribut d'un personnage
--- pipe:pattern([[
-		-- [#EnumRel 
-			-- #Relation (#linkEnum? #EnumRel)?
-		-- ]
--- ]])--enumaraiton d'elements TODO
 pipe:pattern([[
 		[#RelPossess (the 
 			[#EnumRel 
@@ -204,6 +197,9 @@ pipe:pattern([[
 pipe:pattern([[
 		[#Person ((Who|who) #VRB)? ((the)? #Individual (who is)?)? (#Wed|#RelPossess) #Person? (#VRB)?]
 	]])--reconnaissance d'une reference a un personnage
+pipe:pattern([[
+		[#Wed (Married|married) to [#Who (#Person|#Pers|#RelPossess)] ]
+	]])--reconnaissance d'une relation marital 
 pipe:pattern([[
 		[#Dates 
 			[#Annee 
@@ -226,7 +222,6 @@ pipe:pattern([[
 pipe:pattern([[
 	[#PosWhat (What|what) #VRB #Possess (#linkEnum #Possess)*]
 ]])--reconnaissance de question cencernant des attributs de personnages
--- pipe:pattern([[ [#Pers #Pers|#Person] ]])
 pipe:pattern([[
 	[#ActWho (Who|who) #VRB??
 		([#Time 
