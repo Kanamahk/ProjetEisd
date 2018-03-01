@@ -66,6 +66,7 @@ for line in io.lines("Lexiques/Organizations.txt") do
 		end
 	end
 pipe:lexicon("#Allegiances", lexo)
+pipe:lexicon("#UselssAdj", {"really", "trully", "greatly"})
 pipe:lexicon("#Possessif", {"her","his","theirs"})
 pipe:lexicon("#Demonstratif", {"her","him","them"})
 pipe:lexicon("#Pronoun", {"she","he","they"})
@@ -77,7 +78,6 @@ pipe:lexicon("#Died", {"sentences to death","sentenced to death","sentence to de
 pipe:lexicon("#Date", {"date", "time", "age"})
 pipe:lexicon("#Place", {"location", "place", "places", "castle", "region", "country", "isle", "island"})
 pipe:lexicon("#House", {"houses", "Houses","house", "House", "Family","family"})
---pipe:lexicon("#Royal House", {"royal house", "king house"})
 pipe:lexicon("#Race", {"race", "specie", "races", "Race", "Races"})
 pipe:lexicon("#Culture", {"culture", "cultures"})
 pipe:lexicon("#Gender", {"sex", "gender"})
@@ -90,18 +90,21 @@ pipe:lexicon("#Passions", {"passion"})
 pipe:lexicon("#QuestionMark", {"Who","who", "What", "what", "Which", "which", "Where", "where", "When", "when", "How", "how", "Why", "why"})
 pipe:lexicon("#Aliases", {"called", "known as", "Alias", "NickName", "nicknames", "Nicknames", "nickname", "Nicknamed", "Nicknamed", "named", "Aliases", "aliases", "alias"})
 pipe:lexicon("#Singular", {"is", "was", "has"})
-pipe:lexicon("#BodPart", {"eye", "eyes", "hair", "face"})
+pipe:lexicon("#Eyes", {"eye", "eyes", "eyed"})
+pipe:lexicon("#Hair", {"hair", "haired"})
+pipe:lexicon("#Skin", {"skin", "skins", "skined"})
 pipe:lexicon("#Color", {"blue","red","brown","white", "black","green", "gold"})
+pipe:lexicon("#Colors", {"color", "colored"})
 pipe:lexicon("#Hcolor", {"blond","ginger", "redhead","brunette",  })
 pipe:lexicon("#Plural", {"are", "were"})
 pipe:lexicon("#Past", {"was","were","did", "had","been"})
-pipe:lexicon("#Present", {"is", "are", "does", "do"})
+pipe:lexicon("#Present", {"is", "are", "does", "do", "has", "have"})
 pipe:lexicon("#Politeness", {"Do you know","Hello","Hi"})
 pipe:lexicon("#Except", {"but", "But"})
 pipe:lexicon("#height", {"small", "tall"})
 pipe:lexicon("#Some", {"a few", "some", "half"})
 pipe:lexicon("#All", {"All", "all", "Everyone", "Every one", "Every single one"  , "everyone", "every one", "every single one" })
-pipe:lexicon("#Timestamp", {"current","Current", "currently", "former", "Former", "formerly", "claim", "Claim", "claimed"})
+pipe:lexicon("#Timestamp", {"current", "Current", "currently", "former", "Former", "formerly", "claim", "Claim", "claimed"})
 pipe:lexicon("#IndiceTemp", {"AC", "BC"})
 pipe:lexicon("#Genders", {"male", "man", "men", "female", "woman", "women", "girl", "boy"})
 pipe:lexicon("#Det", {"the", "a", "The", "A"})
@@ -119,9 +122,7 @@ pipe:pattern([[
 	]])--reconnaissance de token qui font reference a des un ou des personnage dont on a eventuellement parlé
 
 
-pipe:pattern([[
-		[#PosHow How|how #VRB?	]
-	]])--reconnaissance de question en How TODO
+
 pipe:pattern([[
 		[#Possess 
 			(the [#Possessed	
@@ -131,12 +132,11 @@ pipe:pattern([[
 						|#Allegiance)
 					]
 					|[#Time (#Born|#Died) (#Date|#Place|#House)]
-					|#Appearance
 					|#Gender
 					|#Culture
 					|#Race
 					|#Aliases
-					|[#Physical #Appearance|#BodPart]
+					|[#Physical (#Appearance|#Eyes|#Skin|#Hair) #Colors?]
 					|#Personality
 					|#Passion
 				] (#linkEnum [#EnumAt [#Time (#Born|#Died) (#Date|#Place|#House)]
@@ -149,7 +149,7 @@ pipe:pattern([[
 					|#Gender
 					|#Culture
 					|#Race
-					|#Appearance
+					|[#Physical (#Appearance|#Eyes|#Skin|#Hair) #Colors?]
 					|#Personality
 					|#Passion])* of [#Possessor #Pers|#RelPossess] [#PossEnum (#linkEnum [#PossInEnum (#Pers|#RelPossess)])]*) | 
 			([#Possessor (#Character|#RelPossess|#Possessif)] [#PossEnum (#linkEnum [#PossInEnum (#Character|#RelPossess|#Possessif)])]* ("'" s)?  [#Possessed	 
@@ -163,7 +163,7 @@ pipe:pattern([[
 					|#Gender
 					|#Culture
 					|#Race
-					|#Appearance
+					|[#Physical (#Appearance|#Eyes|#Skin|#Hair) #Colors?]
 					|#Personality
 					|#Passion
 					
@@ -177,7 +177,7 @@ pipe:pattern([[
 					|#Gender
 					|#Culture
 					|#Race
-					|#Appearance
+					|[#Physical (#Appearance|#Eyes|#Skin|#Hair) #Colors?]
 					|#Personality
 					|#Passion])*)
 		]
@@ -217,6 +217,9 @@ pipe:pattern([[
     ]
 ]])--reconnaissance de lieux
 pipe:pattern([[
+		[#PosHow How|how #VRB? #Pers]
+	]])--reconnaissance de question en How TODO
+pipe:pattern([[
 	[#WhatQuestion (What|what) ]
 ]])--reconnaissance de toutes les question en What TODO
 pipe:pattern([[
@@ -233,11 +236,11 @@ pipe:pattern([[
 		]
 		|(#Aliases #Aliase)
 		|(#Det? #Genders)
-		|[#Descr 
-			[#Eyes #Color (eyes|eyed)]
-			|[#Hair #Hcolor|#Color (hair|haired)]
-			|[#Height #height]
-			])
+		|[#Descr #UselssAdj*  
+			((#Color (#Eyes|#Skin))
+			|((#Hcolor|#Color) #Hair?)
+			|(#height)
+			)])
 			
 	]
 ]])--reconnaissance de question generale sur des personnages (Who died by Joffrey?)
