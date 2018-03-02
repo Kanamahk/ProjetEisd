@@ -218,18 +218,11 @@ pipe:pattern([[
 ]])--reconnaissance de lieux
 
 pipe:pattern([[
-		[#PosHow How|how #VRB? #Pers 
-			[#What (#Alias|#Titles|#Possess)
-			]
-		]
-	]])--reconnaissance de question en How TODO
-pipe:pattern([[
 	[#WhatPrecPossess (What|what) #VRB?  #Det [#Wanted (#Colors|#Place|#Date)] ((linkEnum|or) [#EnumWat (#Colors|#Place|#Date)] )* of #Possess (#linkEnum #Possess)*]
 ]])--reconnaissance dee qusetion plus precises en en What TODO
 pipe:pattern([[
 	[#PosWhat (What|what) #VRB #Possess (#linkEnum #Possess)*]
 ]])--reconnaissance de question cencernant des attributs de personnages
-
 pipe:pattern([[
 	[#ActWho (Who|who) #VRB?? [#Action
 		([#Time 

@@ -142,25 +142,26 @@ function LocationRetrieval(location)
 	local pipedloc = pipe(location)
 	local ret = ""
 	local who = pipedloc:tag2str("#Pers")[1]
-	if pipedloc["#Character"] ==0 then
+	if pipedloc["#Character"] == 0 then
 		who = contexp
 	end
-	local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]
-	tag = tag:sub(2)
+	local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]:sub(2)
 	ret = Bd[Link[who][1]][tag]["Place"]["value"]
 	return ret
 end
+
 function DateRetrieval(location)
 	local pipedloc = pipe(location)
-	local ret = ""
+	local ret = {}
 	local who = pipedloc:tag2str("#Pers")[1]
 	if pipedloc["#Character"] ==0 then
 		who = contexp
 	end
-	local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]
-	tag = tag:sub(2)
-	ret = Bd[Link[who][1]][tag]["Date"]["value"]
-	return ret
+	local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]:sub(2)
+	for i=1, #Bd[Link[who][1]][tag]["Date"], 1 do
+		ret[#ret+1] = Bd[Link[who][1]][tag]["Date"][i]["value"].. " " .. Bd[Link[who][1]][tag]["Date"][i]["Period"]
+	end
+	return table.concat(ret, " or ")
 end
 
 -- Returns the Levenshtein distance between the two given strings
@@ -203,244 +204,6 @@ function string.levenshtein(str1, str2)
 	
         -- return the last value - this is the Levenshtein distance
 	return matrix[len1][len2]
-end
-
-function Whois(persons)
-	local ret ={}
-	local whos = {}
-	ret["list"] = {}
-	ret["inpersons"] = 0
-	local prec = ""
-	local piperson = pipe(persons)
-	local dex = #piperson["#Person"]
-	local length = 1
-	local parc = 1
-	while piperson[1][parc]["name"] ~="#Person" do parc = parc +1 end
-	length = piperson[1][parc]["length"]
-	while dex > 0 do 
-		local lys = piperson:tag2str("#Person")[dex]
-		if #piperson["#Wed"]>0 then
-			local wedin = 1
-			parc = 1
-			local w = length
-			while piperson["#Wed"][parc] do
-				if w > piperson["#Wed"][parc][1] then 
-					w = piperson
-					wedin = parc
-				end
-				parc = parc + 1
-			end
-			local wed = piperson:tag2str("#Wed")[wedin]
-			prec = persons:sub(persons:find(wed) + wed:len())
-			whos = WeddingRetrieval(wed)
-			ret["inpersons"] = ret["inpersons"] + whos["inwedding"]
-			dex = dex - whos["inwedding"]
-		end
-		if #piperson["#RelPossess"] >0 then
-			local posin = 1
-			parc = 1
-			local p = length
-			while piperson["#Posess"][parc] do 
-				if p > piperson["#RelPossess"][parc][1] then 
-					p = piperson["#RelPossess"][parc][1]
-					posin = parc
-				end
-				parc = parc +1
-			end
-			local poss = piperson:tag2str("#RelPossess")[1]
-			prec = persons:sub(persons:find(poss) + poss:len())
-			whos = PossesWhoRetrieval(poss)
-			--print(#whos["list"])
-			-- print(table.concat(whos["list"], ", "))
-		end
-		if #whos["list"] == 1 then
-			ret["list"][#ret["list"]+1] = whos["list"][1]
-		else
-			if #whos["list"] > 1 then
-				if #pipe(prec)["#Person"]>0 then
-					percs = Whois(pipe(prec)["#Person"][#pipe(prec)["#Person"]])
-					ret["inpersons"] = ret["inpersons"] + 1 + percs["inpersons"]
-					dex = dex - percs["inpersons"]
-					local i = 1
-					while percs["list"][i] do
-						local j =1
-						while whos["list"][j] do
-							if percs["list"][i] == whos["list"][j] then
-								j = j+1
-								if table.concat(ret, " "):find(whos["list"][j]) == nil then
-									ret["list"][#ret["list"]+1] = whos["list"][j]
-								end
-							else
-								table.remove(whos["list"], j)
-							end
-						end
-						i = i+1
-					end
-				else
-				ret = whos
-				end
-			end
-		end
-		dex = dex - 1
-	end
-	-- if #ret["list"] >1 then
-		-- if #piperson["#VRB"]>0 then
-			-- if (piperson["#VRB"][1] == 2 and piperson["#Plural"][1] == 2) or (piperson["#VRB"][#piperson["#VRB"]] == piperson["#p"]-1 and piperson["#Plural"][#piperson["#Plural"]] == piperson["#p"][1] - 1) then
-				-- return ret
-			-- else
-				-- if (piperson["#VRB"][1] == 2 and piperson["#Singular"][1] == 2) or (piperson["#VRB"][#piperson["#VRB"]] == piperson["#p"]-1 and piperson["#Singular"][#piperson["#Singular"]] == piperson["#p"][1] - 1) then
-					-- local repo =""
-					-- print([[I know many people in a song of ice and fire who match "]].. persons ..[[".
-					-- Did you wish all of them, just some, just one of them or None ?]])  
-					-- while( #pipe(repo)["#None"]>0 and #pipe(repo)["#Except"] ==0 )do
-						-- repo = io.read()
-						-- local repiped = pipe(repo)
-						-- if #repiped["#AOT"] >0 then
-							-- print ("Well fine!")
-							-- return ret
-						-- end
-						-- if #repiped["#Jone"] >0 then
-							-- print("Okay.")
-							-- if pipe(repiped:tag2str("#Jone")[1])["#Character"] >0 then
-								-- ret["list"] = pipe(repiped:tag2str("#Jone")[1])["#Character"]
-							-- else
-								-- if pipe(repiped:tag2str("#Jone")[1])["#Person"] >0 then
-								
-								-- end
-							-- end
-						-- end
-					-- end
-				-- end
-			-- end
-		-- end
-	-- end
-	return ret
-end
-
-function WeddingRetrieval(wedding)
-	ret = {}
-	ret["list"] ={}
-	ret["inwedding"] = 0
-	
-	weds = pipe(wedding)
-	if #weds["#Person"] >0 then
-		local who = Whois(weds:tag2str("#Person")[#weds["#Person"]])
-		ret["inwedding"] = who["inpersons"] +1
-		local woin = 1
-		while who["list"][whoin] do
-			local current = Bd[Link[who["list"][whoin]][1]]
-			local relin = 1
-			while current["Relation"][relin] do
-				if current["Relation"][relin]["lien"]:find("husband") or current["Relation"][relin]["lien"]:find("wife") then
-					ret["list"][#ret["list"] +1 ] = current["Relation"][relin]["Name"]
-				end
-				relin =relin + 1
-			end
-			woin = woin + 1
-		end
-	else
-		if #weds["#Possess"] > 0 then
-			local poss = PossesWhoRetrieval(weds:tag2str("#Possess")[#weds["#Possess"]])
-			local posin = 1
-			while poss["list"][posin] do
-				local current = Bd[Link[who["list"][posin]][1]]
-				local relin = 1
-				while current["Relation"][relin] do
-					if current["Relation"][relin]["lien"]:find("husband") or current["Relation"][relin]["lien"]:find("wife") then
-						ret["list"][#ret["list"] + 1] = current["Relation"][relin]["Name"]
-					end
-					relin =relin + 1
-				end
-				posin = posin + 1
-			end
-		else
-			if #weds["#Character"]>0 then
-				local charin =1
-				while weds:tag2str("#Character")[charin] do
-					local current = Bd[Link[weds:tag2str("#Character")[charin]][1]]
-					local relin = 1
-					while current["Relation"][relin] do
-						if current["Relation"][relin]["lien"]:find("husband") or current["Relation"][relin]["lien"]:find("wife") then
-							ret["list"][#ret["list"] +1 ] = current["Relation"][relin]["Name"]
-						end
-						relin =relin+1
-					end
-					charin = charin + 1
-				end
-			else
-				local current = Bd[Link[weds:tag2str("#Pers")[charin]][1]]
-				local relin = 1
-				while current["Relation"][relin] do
-					if current["Relation"][relin]["lien"]:find("husband") or current["Relation"][relin]["lien"]:find("wife") then
-						ret["list"][#ret["list"] +1 ] = current["Relation"][relin]["Name"]
-					end
-					relin =relin+1
-				end
-			end
-		end
-	end
-	return ret
-end
-
-function PossesWhoRetrieval(pos)
-	local ret ={}
-	local pipos = pipe(pos)
-	ret["list"] = {}
-	ret["inposses"] =0
-	local who = {}
-	who["inpossess"]= 0
-	who["list"] = {}
-	who["list"][1] = pipos:tag2str("#Possessor")[1]
-	local wat = pipos:tag2str("#Relation")[1]
-	-- if wat:sub(wat:len())=="s"then
-		-- wat = wat:sub(1, wat:len()-1)
-	-- end
-	local child = wat =="child"
-	local parent = wat == "parent"
-	if #pipe(who["list"][1])["#Possess"]> 0 then
-		who = PossesWhoRetrieval(who["list"][1])
-		ret["inposses"] =  1 + who["inposses"]
-	end
-	local j=1
-	local i =1
-	print(wat)
-	while who["list"][j] do	
-		local whob = who["list"][j]
-		if #pipe(whob)["#Possessif"] == 1 then whob = contextp end
-		while Bd[Link[whob][1]]["Relation"][i] do
-			if wat == "children" then
-				if (Bd[Link[who][1]]["Relation"][i]["lien"]:find("son") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("son") )
-					or (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("child") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") )
-					or (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("daughter") )
-					then
-					if table.concat(ret, " "):find(Bd[Link[whob][1]]["Relation"][i]["Name"]) == nil then
-						ret["list"][#ret["list"]+1] = Bd[Link[whob][1]]["Relation"][i]["Name"]
-					end
-				end
-			end
-			if wat == "parents" then 
-				if (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("father") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("father") )
-					or (Bd[Link[whob][1]]["Relation"][i]["lien"]:find("mother") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find("mother") ) then
-					if table.concat(ret, " "):find(Bd[Link[whob][1]]["Relation"][i]["Name"]) == nil then
-						ret["list"][#ret["list"]+1] = Bd[Link[whob][1]]["Relation"][i]["Name"]
-					end
-				end
-			elseif Bd[Link[whob][1]]["Relation"][i]["lien"]:find(wat) then
-			print(whob)
-				if Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") and Bd[Link[whob][1]]["Relation"][i]["lien"]:find("/") > Bd[Link[whob][1]]["Relation"][i]["lien"]:find(wat) then
-					if table.concat(ret, " "):find(Bd[Link[whob][1]]["Relation"][i]["Name"]) == nil then
-						ret["list"][#ret["list"]+1] = Bd[Link[whob][1]]["Relation"][i]["Name"]
-					end
-				elseif table.concat(ret, " "):find(Bd[Link[whob][1]]["Relation"][i]["Name"]) == nil then
-					ret["list"][#ret["list"]+1] = Bd[Link[whob][1]]["Relation"][i]["Name"]						
-				end
-			end
-			i= i+ 1
-		end
-		j = j+1
-	end
-	print(table.concat(ret["list"], ", "))
-	return ret
 end
 
 function GenderSynonym(gender)
@@ -613,11 +376,11 @@ function RelpossesSimpleRetrieve (pos)
 		local pprnt = table.concat(nativ, " or \n")
 		print (pprnt)
 		print ("please choose an alias")
-		local choice =io.read()
+		local choice =io.read():gsub("%p", " %0 ")
 		while pprnt:find(choice) == nil do
 			print("i do not understand your choice, you may have done a mistake while writing it")
 			print("please try again")
-			choice = io.read()
+			choice = io.read():gsub("%p", " %0 ")
 		end
 		for i =1, #Bd[Link[choice][1]]["Relation"],1 do
 			if (Bd[Link[choice][1]]["Relation"][i]["lien"]:find(relation) and Bd[Link[choice][1]]["Relation"][i]["lien"]:find("/") == nil) 
@@ -724,6 +487,61 @@ while quitting ~= true do
 			vrb = contextq["piped"]:tag2str("#VRB")[1]
 		end
 	end
+	if #piped["#TiQuestion"]>0 then
+		for j=1, #piped["#TiQuestion"], 1 do
+			local locat = piped:tag2str("#TiQuestion")[j]
+			local piploc = pipe(locat)
+			local start = locat:sub(1, locat:find(piploc:tag2str("#Pers")[1])-1)
+			local ending = locat:sub(locat:find(piploc:tag2str("#Pers")[#piploc["#Pers"]]) + piploc:tag2str("#Pers")[#piploc["#Pers"]]:len())
+			for i=1, #piploc["#Pers"], 1 do
+				local treat =""
+				local sor = piploc:tag2str("#Pers")[i]
+				if #Link[sor] > 1 then
+					local nativ = {}
+					print("Who are we refering to ?")
+					for i=1, #Link[sor], 1 do
+						local liases = {}
+						for k=1, #Bd[i]["Aliases"], 1 do
+							liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
+						end
+						nativ[#nativ+1] = sor .. ": " table.concat(liases, ", ")
+					end
+					local pprnt = table.concat(nativ, " or \n")
+					print (pprnt)
+					print ("please choose an alias")
+					local choice =io.read():gsub("%p", " %0 ")
+					while pprnt:find(choice) == nil do
+						print("i do not understand your choice, you may have done a mistake while writing it")
+						print("please try again")
+						choice = io.read():gsub("%p", " %0 ")
+					end
+					treat = choice
+				else
+					treat = sor
+				end
+				local location = start .. sor .. ending
+				local but = {}
+				but[1] = piploc:tag2str("#Action")[1]
+				if #piploc["#EnumAc"]>0 then
+					for m=1, #piploc["#EnumAc"],1 do
+						but[#but+1]= piploc:tag2str("#EnumAc")[m]
+					end
+				end
+				local begin = location:sub(1, location:find(but[1])-1)
+				local final = location:sub(location:find(but[#but])+location:len())
+				for n=1, #but, 1 do
+					local ply = DateRetrieval(begin..but[n]..final)
+					if ply == nil then 
+						print( "I'm sorry, i do not have this information in my database.")
+					else
+						print(ply)
+					end
+				end
+			end
+		end
+		contextq["piped"] = piped
+		contextq["str"] = answer
+	end
 	if #piped["#LoQuestion"]>0 then
 		for j=1, #piped["#LoQuestion"], 1 do
 			local locat = piped:tag2str("#LoQuestion")[j]
@@ -746,11 +564,11 @@ while quitting ~= true do
 					local pprnt = table.concat(nativ, " or \n")
 					print (pprnt)
 					print ("please choose an alias")
-					local choice =io.read()
+					local choice =io.read():gsub("%p", " %0 ")
 					while pprnt:find(choice) == nil do
 						print("i do not understand your choice, you may have done a mistake while writing it")
 						print("please try again")
-						choice = io.read()
+						choice =io.read():gsub("%p", " %0 ")
 					end
 					treat = choice
 				else
@@ -1003,9 +821,13 @@ while quitting ~= true do
 						print( "I don't know about this information, sorry")
 					else
 						if #piped["#Plural"]>0 then
-						print(stion .. " " .. piped:tag2str("#VRB")[1] .. " " ..table.concat(trep, ", "))
+							print(stion .. " : " ..table.concat(trep, ", "))
 						else
-						print(stion .. " " .. piped:tag2str("#VRB")[1] .. " " .. trep[math.random(#trep)])
+							print(stion .. " : " .. trep[math.random(#trep)])
+							local op = io.read():gsub("%p", " %0 ")
+							while op == "and" or op == "And" or op == "and" or op == "And" do
+								print (trep[math.random(#trep)])
+							end
 						end
 					end
 				end
@@ -1044,11 +866,11 @@ while quitting ~= true do
 						local pprnt = table.concat(nativ, " or \n")
 						print (pprnt)
 						print ("please choose an alias")
-						local choice =io.read()
+						local choice =io.read():gsub("%p", " %0 ")
 						while pprnt:find(choice) == nil do
 							print("i do not understand your choice, you may have done a mistake while writing it")
 							print("please try again")
-							choice = io.read()
+							choice = io.read():gsub("%p", " %0 ")
 						end
 						treat = choice
 					elseif #Link[sors[j]] == 1 then
@@ -1167,11 +989,173 @@ while quitting ~= true do
 			end
 			
 		 end
-	elseif contextq["piped"] and contextq["str"] and piped["#Quit"] == 0 then
-		local pipeq = contextq["piped"]
-		local pers = piped:tag2str("#Character")[1]
-		answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
-		bounce = true
+	else
+		if #piped["#Aliases"]>0 then
+		local cra = piped:tag2str("#Pers")
+			for j=1, #cra, 1 do
+				local treat =""
+				local sor = cra[j]
+				if #Link[sor] > 1 then
+					local nativ = {}
+					print("Who are we refering to ?")
+					for i=1, #Link[sor], 1 do
+						local liases = {}
+						for k=1, #Bd[i]["Aliases"], 1 do
+							liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
+						end
+						nativ[#nativ+1] = sor .. ": " table.concat(liases, ", ")
+					end
+					local pprnt = table.concat(nativ, " or \n")
+					print (pprnt)
+					print ("please choose an alias")
+					local choice =io.read():gsub("%p", " %0 ")
+					while pprnt:find(choice) == nil do
+						print("i do not understand your choice, you may have done a mistake while writing it")
+						print("please try again")
+						choice = io.read():gsub("%p", " %0 ")
+					end
+					treat = choice
+				else
+					treat = sor
+				end
+				
+				for i=1, #Bd[Link[treat][1]]["Aliases"], 1 do
+					print (Bd[Link[treat][1]]["Aliases"][i]["value"])
+				end
+			end
+		end
+		if #piped["#member"]>0 or #piped["#Titles"]>0 or #piped["#House"]>0 or #piped["#Allegiance"]>0 then
+			local cra = piped:tag2str("#Pers")
+			local ret ={}
+			for j=1, #cra, 1 do
+				local treat =""
+				local sor = cra[j]
+				if #Link[sor] > 1 then
+					local nativ = {}
+					print("Who are we refering to ?")
+					for i=1, #Link[sor], 1 do
+						local liases = {}
+						for k=1, #Bd[i]["Aliases"], 1 do
+							liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
+						end
+						nativ[#nativ+1] = sor .. ": " table.concat(liases, ", ")
+					end
+					local pprnt = table.concat(nativ, " or \n")
+					print (pprnt)
+					print ("please choose an alias")
+					local choice =io.read():gsub("%p", " %0 ")
+					while pprnt:find(choice) == nil do
+						print("i do not understand your choice, you may have done a mistake while writing it")
+						print("please try again")
+						choice = io.read():gsub("%p", " %0 ")
+					end
+					treat = choice
+				else
+					treat = sor
+				end
+				
+				local Chara = Bd[Link[treat][1]]
+				local timeTag = {}
+				if #piped["#Timestamp"]>0 then
+					for k =1, #piped:tag2str("#Timestamp"), 1 do
+						local sform = piped:tag2str("#Timestamp")[k]
+						timeTag[#timeTag+1] = AnyToTimestamp(sform)
+					end
+				end	
+				if (#piped:tag2str("#Timestamp")==1 and (piped:tag2str("#Timestamp")[1]:lower() == "former"))or (#piped["#Past"]>0 == true and #piped:tag2str("#Timestamp")==0)then
+					if #piped["#Allegiance"]>0 then
+						for i = 1, #Chara["Allegiance"]["former"], 1 do
+							ret[#ret+1] = Chara["Allegiance"]["former"][i]["value"]
+						end
+					end
+					if #piped["#Titles"]>0 then
+						for i = 1, #Chara["Titles"]["former"], 1 do
+							ret[#ret+1] = Chara["Titles"]["former"][i]["value"]
+						end
+					end
+					if #piped["#House"]>0 then
+						for i = 1, #Chara["House"]["former"], 1 do
+							ret[#ret+1] = Chara["House"]["former"][i]["value"]
+						end
+					end
+				elseif (#piped:tag2str("#Timestamp")==1 and( piped:tag2str("#Timestamp")[1]:lower() == "current" )) or (#piped["#Past"] == 0 and #piped:tag2str("#Timestamp")==0)then
+					if #piped["#Allegiance"]>0 then
+						for i = 1, #Chara["Allegiance"]["current"], 1 do
+							ret[#ret+1] = Chara["Allegiance"]["current"][i]["value"]
+						end
+					end
+					if #piped["#Titles"]>0 then
+						for i = 1, #Chara["Titles"]["current"], 1 do
+							ret[#ret+1] = Chara["Titles"]["current"][i]["value"]
+						end
+					end
+					if #piped["#House"]>0 then
+						for i = 1, #Chara["House"]["current"], 1 do
+							ret[#ret+1] = Chara["House"]["current"][i]["value"]
+						end
+					end
+				elseif #piposs:tag2str("#Timestamp")==1 then
+					if #piped["#Allegiance"]>0 then
+						for i = 1, #Chara["Allegiance"]["claim"], 1 do
+							ret[#ret+1] = Chara["Allegiance"]["claim"][i]["value"]
+						end
+					end
+					if #piped["#Titles"]>0 then
+						for i = 1, #Chara["Titles"]["claim"], 1 do
+							ret[#ret+1] = Chara["Titles"]["claim"][i]["value"]
+						end
+					end
+					if #piped["#House"]>0 then
+						for i = 1, #Chara["House"]["claim"], 1 do
+							ret[#ret+1] = Chara["House"]["claim"][i]["value"]
+						end
+					end
+				elseif #piposs:tag2str("#Timestamp")>1 then 
+					if possess:find(" or ") then
+						local chosen = timeTag[math.random(#timeTag)]
+						if #piped["#Allegiance"]>0 then
+							for i=1, #Chara["Allegiance"][chosen], 1 do
+								ret[#ret +1] = Chara["Allegiance"][chosen][i]["value"]
+							end
+						end
+						if #piped["#Titles"]>0 then
+							for i=1, #Chara["Titles"][chosen], 1 do
+								ret[#ret +1] = Chara["Titles"][chosen][i]["value"]
+							end
+						end
+						if #piped["#House"]>0 then
+							for i=1, #Chara["House"][chosen], 1 do
+								ret[#ret +1] = Chara["House"][chosen][i]["value"]
+							end
+						end
+					else
+						for k=1, #timeTag, 1 do	
+							if #piped["#Allegiance"]>0 then
+								for i = 1, #Chara["Allegiance"][timeTag[k]], 1 do
+									ret[#ret+1] = Chara["Allegiance"][timeTag[k]][i]["value"]
+								end
+							end
+							if #piped["#Titles"]>0 then
+								for i = 1, #Chara["Titles"][timeTag[k]], 1 do
+									ret[#ret+1] = Chara["Titles"][timeTag[k]][i]["value"]
+								end
+							end
+							if #piped["#House"]>0 then
+								for i = 1, #Chara["House"][timeTag[k]], 1 do
+									ret[#ret+1] = Chara["House"][timeTag[k]][i]["value"]
+								end
+							end
+						end
+					end
+				end
+			end
+			print (table.concat(ret, ", "))
+		elseif contextq["piped"] and contextq["str"] and piped["#Quit"] == 0 then
+			local pipeq = contextq["piped"]
+			local pers = piped:tag2str("#Character")[1]
+			answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
+			bounce = true
+		end
 	end
 	if bounce == false then
 		if reply ~= "" then
