@@ -17,7 +17,7 @@ function AnyToTimestamp(str)
 end
 
 --returns what is wanted from the possess pattern
-function PossRetrieval(possess, isPast, isPlur)
+function PossRetrieval(possess, isPast)
 	local ret = {}
 	local tret =""
 	if possess then
@@ -133,22 +133,8 @@ function PossRetrieval(possess, isPast, isPlur)
 				end
 			end
 		end
-		if isPlur == true then
-			if #ret > 0 then
-				return table.concat(ret, ", ")
-			else
-				return "UNKNOWN"
-			end
-		else
-			if #ret>0 then
-				return ret[math.random(#ret)]
-			else
-				return "UNKNOWN"
-			end
-		end
-	else
-	return ""
 	end
+	return ret
 end
 
 --returns the location, the place where something happenned
@@ -156,17 +142,24 @@ function LocationRetrieval(location)
 	local pipedloc = pipe(location)
 	local ret = ""
 	local who = pipedloc:tag2str("#Pers")[1]
-	local whos ={}
-	if #pipe(who)["#Person"] >0 then
-		whos = Whois(who)
+	if pipedloc["#Character"] ==0 then
+		who = contexp
 	end
-	if #whos >0 then
-	
-	else 
-		local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]
-		tag = tag:sub(2)
-		ret = Bd[Link[who][1]][tag]["Place"]["value"]
+	local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]
+	tag = tag:sub(2)
+	ret = Bd[Link[who][1]][tag]["Place"]["value"]
+	return ret
+end
+function DateRetrieval(location)
+	local pipedloc = pipe(location)
+	local ret = ""
+	local who = pipedloc:tag2str("#Pers")[1]
+	if pipedloc["#Character"] ==0 then
+		who = contexp
 	end
+	local tag = pipedloc[pipedloc["#Action"][1][1]][2]["name"]
+	tag = tag:sub(2)
+	ret = Bd[Link[who][1]][tag]["Date"]["value"]
 	return ret
 end
 
@@ -485,8 +478,8 @@ function openWho(whopen)
 			end
 		elseif #pipopen["#HasPast"] >0then
 			local timeTag= {}
-			tag = pipopen[pipopen["#HasPast"][1][2]][2]["name"]
-			value = pipoen:tag2str(tag)[1]
+			tag = pipopen[pipopen["#HasPast"][1][2]][3]["name"]
+			value = pipopen:tag2str(tag)[1]
 			if #pipopen["#Timestamp"]>0 then
 				for k =1, #pipopen:tag2str("#Timestamp"), 1 do
 					local tim = pipopen:tag2str("#Timestamp")[k]
@@ -507,24 +500,24 @@ function openWho(whopen)
 			if #timeTag == 0 and #pipopen["#Past"]==1 then
 				for i=1, #Bd, 1 do 
 					for j=1, #Bd[i][tag]["former"], 1 do
-						if #Bd[i][tag]["former"][j]["value"] == value then
+						if Bd[i][tag]["former"][j]["value"] == value and Bd[i]["Name"]["Firstname"]["value"] and Bd[i]["Name"]["Surname"]["value"] then
 							ret[#ret+1] = Bd[i]["Name"]["Firstname"]["value"] .." "..Bd[i]["Name"]["Surname"]["value"]
 						end
 					end
 				end
 			elseif #timeTag == 0 and #pipopen["#Present"]==1 then
-				for i=1, #Bd, 1 do 
+				for i=1, #Bd, 1 do	
 					for j=1, #Bd[i][tag]["current"], 1 do
-						if #Bd[i][tag]["current"][j]["value"] == value then
+						if Bd[i][tag]["current"][j]["value"] == value and Bd[i]["Name"]["Firstname"]["value"] and Bd[i]["Name"]["Surname"]["value"] then
 							ret[#ret+1] = Bd[i]["Name"]["Firstname"]["value"] .." "..Bd[i]["Name"]["Surname"]["value"]
 						end
 					end
 				end
 			else
-				for k =1 , #timeTag, 1 do
+				for k =1, #timeTag, 1 do
 					for i=1, #Bd, 1 do 
 						for j=1, #Bd[i][tag][timeTag[k]], 1 do 
-							if #Bd[i][tag][timeTag[k]][j]["value"] == value then
+							if Bd[i][tag][timeTag[k]][j]["value"] == value and Bd[i]["Name"]["Firstname"]["value"] and Bd[i]["Name"]["Surname"]["value"] then
 								ret[#ret+1] = Bd[i]["Name"]["Firstname"]["value"] .." "..Bd[i]["Name"]["Surname"]["value"]
 							end
 						end
@@ -536,7 +529,6 @@ function openWho(whopen)
 				if #pipopen["#height"] > 0 then
 					for j=1, #Bd[i]["Appearance"]["description"], 1 do
 						if Bd[i]["Appearance"]["description"][j]["value"] == pipoen:tag2str("#height")[1] then
-							
 							ret[#ret +1] = Bd[i]["Name"]["Firstname"]["value"] .. " "..Bd[i]["Name"]["Surname"]["value"]
 						end
 					end
@@ -680,12 +672,12 @@ function PossesMultiRel(relpossess, piped)
 end
 
 contextp = nil
-bounce = false;
+bounce = false
 contextq =	{}
 contextq["piped"] = nil
 contextq["str"] = nil
 print([[Hello, i'm AskA.S.O.I.A.F., your chatbot dedicated to A Song Of Ice And Fire.]])
-print([[What can i do for you today ?]])
+print([[What can i do for you today ? What do you need to know ?]])
 while quitting ~= true do
 	local context = {}
 	local interrogation =false
@@ -715,7 +707,9 @@ while quitting ~= true do
 		end
 	elseif #piped["#Character"] == 0 then
 		if #piped["#Pers"] == 0 then
-			print ("Who are you talking about ?")
+			if(quitting == false) then
+				print ("Who are you talking about ?")
+			end
 		else
 			Charac = contextp
 		end
@@ -726,18 +720,201 @@ while quitting ~= true do
 	if quitting == false then
 		if #piped["#VRB"]>0 then
 			vrb = piped:tag2str("#VRB")[1]
-		else
+		elseif #pipe(contextq)["#VRB"]>0 then
 			vrb = contextq["piped"]:tag2str("#VRB")[1]
 		end
 	end
 	if #piped["#LoQuestion"]>0 then
-		reply = LocationRetrieval(piped:tag2str("#LoQuestion")[1])
-		if reply == nil then 
-			reply = "This question doesn't make any sense"
+		for j=1, #piped["#LoQuestion"], 1 do
+			local locat = piped:tag2str("#LoQuestion")[j]
+			local piploc = pipe(locat)
+			local start = locat:sub(1, locat:find(piploc:tag2str("#Pers")[1])-1)
+			local ending = locat:sub(locat:find(piploc:tag2str("#Pers")[#piploc["#Pers"]]) + piploc:tag2str("#Pers")[#piploc["#Pers"]]:len())
+			for i=1, #piploc["#Pers"], 1 do
+				local treat =""
+				local sor = piploc:tag2str("#Pers")[i]
+				if #Link[sor] > 1 then
+					local nativ = {}
+					print("Who are we refering to ?")
+					for i=1, #Link[sor], 1 do
+						local liases = {}
+						for k=1, #Bd[i]["Aliases"], 1 do
+							liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
+						end
+						nativ[#nativ+1] = sor .. ": " table.concat(liases, ", ")
+					end
+					local pprnt = table.concat(nativ, " or \n")
+					print (pprnt)
+					print ("please choose an alias")
+					local choice =io.read()
+					while pprnt:find(choice) == nil do
+						print("i do not understand your choice, you may have done a mistake while writing it")
+						print("please try again")
+						choice = io.read()
+					end
+					treat = choice
+				else
+					treat = sor
+				end
+				local location = start .. sor .. ending
+				local but = {}
+				but[1] = piploc:tag2str("#Action")[1]
+				if #piploc["#EnumAc"]>0 then
+					for m=1, #piploc["#EnumAc"],1 do
+						but[#but+1]= piploc:tag2str("#EnumAc")[m]
+					end
+				end
+				local begin = location:sub(1, location:find(but[1])-1)
+				local final = location:sub(location:find(but[#but])+location:len())
+				for n=1, #but, 1 do
+					local ply = LocationRetrieval(begin..but[n]..final)
+					if ply == nil then 
+						print( "I'm sorry, i do not have this information in my database.")
+					else
+						print(ply)
+					end
+				end
+			end
 		end
 		contextq["piped"] = piped
 		contextq["str"] = answer
-	elseif #piped["#WhatQuestion"] >0 then
+	elseif #piped["#WhatPrecPossess"]>0 then
+		for i=1, #piped["#WhatPrecPossess"], 1 do
+			local prec = piped:tag2str("#WhatPrecPossess")[i]
+			local piprec = pipe(prec)
+			local tags = {}
+			tags[1] = piprec[piprec["#Wanted"][1][1]][2]["name"]
+			if(tags[1]:sub(tags[1]:len()) == "s") then
+				tags[1] = tags[1]:sub(1, tags[1]:len()-1)
+			else
+				tags[1] = tags[1] .. "s"
+			end
+			if #piprec["#EnumWat"]>0 then
+				for d=1, #prec["#EnumWat"], 1 do
+					local tt = piprec[piprec["#EnumWat"][d][1]][name]
+					if tt:sub(tt:len()) == "s" then
+						tags[#tags+1] = tt:sub(1,tt:len()-1)
+					else
+						tags[#tags+1]= tt .. "s" 
+					end
+				end
+			end
+			for p=1, #piprec["#Possess"], 1 do
+				local pos = piprec:tag2str("#Possess")[p]
+				local sors ={}
+				sors[1] = pipe(pos):tag2str("#Possessor")[1]
+				local begin = pos:sub(1, pos:find(sors[1]) -1 )
+				if #pipe(pos)["#PossEnum"] >0 then
+					local popo = pipe(pos)
+					for j=1, #popo["#PossInEnum"], 1 do
+						sors[#sors +1] = popo:tag2str("#PossInEnum")[j]
+					end
+				end
+				local final = pos:sub(pos:find(sors[#sors]) + sors[#sors]:len())
+				local temp = sors
+				sors = {}
+				for j=1, #temp, 1 do
+					if #pipe(temp[j])["#RelPossess"]>0 then
+						local piptreat = pipe(temp[j])
+						local character = {}
+						for v=1, #piposor["#RelPossess"], 1 do
+							if #character ==0 then
+								local actpos = piposor:tag2str("#RelPossess")[v]
+								if #pipe(actpos)["#Relation"]>1 then
+									repList = PossesMultiRel(actpos, piped)
+									for k=1, #repList, 1 do
+										print (repList[k])
+										local re = pipe(repList[k])
+										for n = 2, #re["#Character"], 1 do
+											character[#character+1] = re:tag2str("#Character")[n]
+										end
+									end
+								else
+									character = RelPossessRetrieve(actpos)
+								end
+							else
+								local charaparc = character
+								character = {}
+								local actpos = piposor:tag2str("#RelPossess")[v]
+								local soremplace = piposor:tag2str("#Possessor")[#piposor["#Possessor"]]
+								local start = actpos:sub(1,actpos:find(soremplace)-1)
+								local ending = actpos:sub(actpos:find(soremplace) + soremplace:len())
+								for k = 1, #charaparc, 1 do
+									local actchar = charaparc[k]
+									local treat = start .. actchar .. ending
+									if #pipe(treat)["#Relation"] >1 then
+										repList = PossesMultiRel(treat, piped)
+										for l=1, #repList, 1 do
+											print(repList[l])
+											local re = pipe(repList[l])
+											for n=2, #re["#Character"], 1 do
+												character[#character+1] = re:tag2str("#Character")[n]
+											end
+										end
+									else
+										local cra = RelpossesSimpleRetrieve(treat)
+										for n=1, #cra, 1 do
+											character[#character+1] = cra[n]
+										end
+									end
+								end
+							end
+						end
+						for v = 1, #character, 1 do
+							sors[#sors+1]=character[v]
+						end
+					else
+						sors[#sors+1] = temp[j]
+					end
+				end
+				for j=1, #sors, 1 do
+					local atrib = begin .. sors[j] ..final
+					local buts = {}
+					buts[1] = pipe(atrib):tag2str("#Possessed")[1]
+					if #pipe(atrib)["#EnumAt"] > 0 then
+						local popo = pipe(atrib)
+						for k=1, #popo["#EnumAt"], 1 do
+							buts[#buts +1] = popo:tag2str("#EnumAt")[k]
+						end
+					end
+					local start = atrib:sub(1, atrib:find(buts[1])-1)
+					local ending = atrib:sub(atrib:find(buts[#buts]) + buts[#buts]:len())
+					for k=1, #buts, 1 do
+						local stion = start .. buts[k] .. ending
+						local trep = PossRetrieval(stion,#piped["#Past"]>0)
+						
+						if #trep ==0 then
+							print( "I don't know about this information, sorry")
+						else
+							local pri ={}
+							if prec:find(" or ") then
+								local tofind = tags[math.random(#tags)]
+								for n=1, #trep, 1 do
+									if #pipe(trep[n])[tofind]>0 then
+										pri[#pri+1] = trep[n]
+									end
+								end
+							else
+								for n=1, #trep, 1 do
+									for m=1, #tags, 1 do
+										if #pipe(trep[n])[tags[m]]>0 then
+											pri[#pri+1] = trep[n]
+										end
+									end
+								end
+							end
+							
+							if #piped["#Plural"]>0 then
+								print(prec:sub(prec:find(piprec:tag2str("#Det")[1]), prec:find("of") +2).. " ".. stion .. " " .. piprec:tag2str("#VRB")[1] .. " " ..table.concat(pri, ", "))
+							else
+								print(prec:sub(prec:find(piprec:tag2str("#Det")[1]), prec:find("of") +2).. " ".. stion .. " " .. piprec:tag2str("#VRB")[1] .. " " .. pri[math.random(#pri)])
+							end
+						end
+					end
+				end
+			end
+		end
+	elseif #piped["#Possess"]>0 then
 		for i=1, #piped["#Possess"], 1 do
 			local pos = piped:tag2str("#Possess")[i]
 			local sors ={}
@@ -793,7 +970,7 @@ while quitting ~= true do
 								else
 									local cra = RelpossesSimpleRetrieve(treat)
 									for n=1, #cra, 1 do
-										character[#character] = cra[n]
+										character[#character+1] = cra[n]
 									end
 								end
 							end
@@ -819,13 +996,17 @@ while quitting ~= true do
 				local start = atrib:sub(1, atrib:find(buts[1])-1)
 				local ending = atrib:sub(atrib:find(buts[#buts]) + buts[#buts]:len())
 				for k=1, #buts, 1 do
-					local trep = PossRetrieval(start .. buts[k] .. ending,#piped["#Past"]>0,#piped["#Plural"]>0)
-					if trep == "UNKNOWN" then
+					local stion = start .. buts[k] .. ending
+					local trep = PossRetrieval(stion,#piped["#Past"]>0)
+					
+					if #trep ==0 then
 						print( "I don't know about this information, sorry")
-					elseif trep == "" then 
-						print( "This question doesn't make any sense")
 					else
-						print( start..buts[k]..ending .. " " .. piped:tag2str("#VRB")[1] .. " " .. trep)
+						if #piped["#Plural"]>0 then
+						print(stion .. " " .. piped:tag2str("#VRB")[1] .. " " ..table.concat(trep, ", "))
+						else
+						print(stion .. " " .. piped:tag2str("#VRB")[1] .. " " .. trep[math.random(#trep)])
+						end
 					end
 				end
 			end
@@ -833,6 +1014,7 @@ while quitting ~= true do
 		contextq["piped"] = piped
 		contextq["str"] = answer
 	elseif #piped["#Person"] > 0  then 
+		local found ={}
 		if #piped["#Wed"] > 0 then
 			for i=1, #piped["#Wed"], 1 do
 				local sors = {}
@@ -852,12 +1034,12 @@ while quitting ~= true do
 					if #Link[sors[j]] > 1 then
 						local nativ = {}
 						print("Who are we refering to ?")
-						for i=1, #Link[chara], 1 do
+						for i=1, #Link[sors[j]], 1 do
 							local liases = {}
 							for k=1, #Bd[i]["Aliases"], 1 do
 								liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
 							end
-							nativ[#nativ+1] = chara .. ": " table.concat(liases, ", ")
+							nativ[#nativ+1] = sors[j] .. ": " table.concat(liases, ", ")
 						end
 						local pprnt = table.concat(nativ, " or \n")
 						print (pprnt)
@@ -876,6 +1058,7 @@ while quitting ~= true do
 						if Bd[Link[treat][1]]["Relation"][k]["lien"]:find("husband")
 						or Bd[Link[treat][1]]["Relation"][k]["lien"]:find("wife")
 						or Bd[Link[treat][1]]["Relation"][k]["lien"]:find("spouse") then
+							
 							print (treat .. " is marrried to ".. Bd[Link[treat][1]]["Relation"][k]["Name"])
 						end
 					end
@@ -982,15 +1165,15 @@ while quitting ~= true do
 					
 				end
 			end
+			
 		 end
 	elseif contextq["piped"] and contextq["str"] and piped["#Quit"] == 0 then
 		local pipeq = contextq["piped"]
 		local pers = piped:tag2str("#Character")[1]
-		answer =contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
+		answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
 		bounce = true
 	end
 	if bounce == false then
-		reply = reply:gsub("( )(%p )", "%2")
 		if reply ~= "" then
 			print (reply..".")
 		end

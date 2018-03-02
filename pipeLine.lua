@@ -1,7 +1,6 @@
 local pipe = dark.pipeline()
 pipe:basic()
 pipe:lexicon("#FirstName", "Lexiques/Lexique_CharactersFirstname.txt")
-pipe:lexicon("#SurName", "Lexiques/Lexique_CharactersSurname.txt")
 pipe:lexicon("#Aliase", "Lexiques/Lexique_Alias.txt")
 pipe:lexicon("#Title", "Lexiques/Lexique_Titles.txt")
 pipe:lexicon("#Quit", {"quit", "Quit", "QUIT", "good bye", "bye", "see you later"})
@@ -23,6 +22,7 @@ end
 --	end
 	
 pipe:lexicon("#Houses", lexh)
+pipe:lexicon("#SurName", "Lexiques/Lexique_CharactersSurname.txt")
 lexc ={}
 for line in io.lines("Lexiques/Castles.txt") do
 	for sen in line:gmatch("[^,]+") do
@@ -82,7 +82,7 @@ pipe:lexicon("#Race", {"race", "specie", "races", "Race", "Races"})
 pipe:lexicon("#Culture", {"culture", "cultures"})
 pipe:lexicon("#Gender", {"sex", "gender"})
 pipe:lexicon("#Appearance", {"looks like","appearance","look"})
-pipe:lexicon("#Titles", {"Title", "Titles", "title", "Titled", "titled", "titles"})
+pipe:lexicon("#Titles", {"Title", "Titles", "title", "Titled", "titled", "titles", "entitled"})
 pipe:lexicon("#Allegiance", {"allegiance", "Allegiance","allegiances", "Allegiances", "organization","Organization", "organizations","Organizations",})
 pipe:lexicon("#Personality", {"personality", "Personality", "psychology"})
 pipe:lexicon("#member", {"part of","loyal to", "member of", "members of", "among the", "in the"})
@@ -216,17 +216,22 @@ pipe:pattern([[
             | #region 
     ]
 ]])--reconnaissance de lieux
+
 pipe:pattern([[
-		[#PosHow How|how #VRB? #Pers]
+		[#PosHow How|how #VRB? #Pers 
+			[#What (#Alias|#Titles|#Possess)
+			]
+		]
 	]])--reconnaissance de question en How TODO
 pipe:pattern([[
-	[#WhatQuestion (What|what) ]
-]])--reconnaissance de toutes les question en What TODO
+	[#WhatPrecPossess (What|what) #VRB?  #Det [#Wanted (#Colors|#Place|#Date)] ((linkEnum|or) [#EnumWat (#Colors|#Place|#Date)] )* of #Possess (#linkEnum #Possess)*]
+]])--reconnaissance dee qusetion plus precises en en What TODO
 pipe:pattern([[
 	[#PosWhat (What|what) #VRB #Possess (#linkEnum #Possess)*]
 ]])--reconnaissance de question cencernant des attributs de personnages
+
 pipe:pattern([[
-	[#ActWho (Who|who) #VRB??
+	[#ActWho (Who|who) #VRB?? [#Action
 		([#Time 
 			(#Born|#Died) ((by? #Person)|(in (#Dates|#Houses))|(at #Places))
 		]
@@ -242,15 +247,24 @@ pipe:pattern([[
 			|(#height)
 			)])
 			
+		]
 	]
 ]])--reconnaissance de question generale sur des personnages (Who died by Joffrey?)
  pipe:pattern([[
-		[#LoQuestion (Where|where) #VRB #Pers 
+		[#LoQuestion (Where|where) #VRB #Pers (#linkEnum #Pers)* 
 			[#Action 
 				#Born
 				|#Died
-			]
-		"?"]
-]])--reconnaissance de question concernant un endroit TODO
+			] (#linkEnum [#EnumAc #Born|#Died])* 
+		]
+]])--reconnaissance de question concernant un endroit 
+pipe:pattern([[
+		[#TiQuestion (When|when) #VRB #Pers (#linkEnum #Pers)* 
+			[#Action 
+				#Born
+				|#Died
+			] (#linkEnum [#EnumAc #Born|#Died])* 
+		]
+]])--reconnaissance de question concernant un endroit 
 	
 return pipe
