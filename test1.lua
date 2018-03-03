@@ -527,6 +527,8 @@ while quitting ~= true do
 						but[#but+1]= piploc:tag2str("#EnumAc")[m]
 					end
 				end
+				contextq["piped"] = pipe(location)
+				contextq["str"] = location
 				local begin = location:sub(1, location:find(but[1])-1)
 				local final = location:sub(location:find(but[#but])+location:len())
 				for n=1, #but, 1 do
@@ -582,6 +584,8 @@ while quitting ~= true do
 						but[#but+1]= piploc:tag2str("#EnumAc")[m]
 					end
 				end
+				contextq["piped"] = pipe(location)
+				contextq["str"] = location
 				local begin = location:sub(1, location:find(but[1])-1)
 				local final = location:sub(location:find(but[#but])+location:len())
 				for n=1, #but, 1 do
@@ -594,8 +598,6 @@ while quitting ~= true do
 				end
 			end
 		end
-		contextq["piped"] = piped
-		contextq["str"] = answer
 	elseif #piped["#WhatPrecPossess"]>0 then
 		for i=1, #piped["#WhatPrecPossess"], 1 do
 			local prec = piped:tag2str("#WhatPrecPossess")[i]
@@ -688,6 +690,8 @@ while quitting ~= true do
 				for j=1, #sors, 1 do
 					local atrib = begin .. sors[j] ..final
 					local buts = {}
+					contextq["piped"] = pipe(atrib)
+					contextq["str"] = atrib
 					buts[1] = pipe(atrib):tag2str("#Possessed")[1]
 					if #pipe(atrib)["#EnumAt"] > 0 then
 						local popo = pipe(atrib)
@@ -801,9 +805,13 @@ while quitting ~= true do
 					sors[#sors+1] = temp[j]
 				end
 			end
+			
 			for j=1, #sors, 1 do
 				local atrib = begin .. sors[j] ..final
 				local buts = {}
+				
+				contextq["piped"] = pipe(atrib)
+				contextq["str"] = atrib
 				buts[1] = pipe(atrib):tag2str("#Possessed")[1]
 				if #pipe(atrib)["#EnumAt"] > 0 then
 					local popo = pipe(atrib)
@@ -833,8 +841,6 @@ while quitting ~= true do
 				end
 			end
 		end
-		contextq["piped"] = piped
-		contextq["str"] = answer
 	elseif #piped["#Person"] > 0  then 
 		local found ={}
 		if #piped["#Wed"] > 0 then
@@ -900,6 +906,8 @@ while quitting ~= true do
 					local ending = rel:sub(rel:find(sors[#sors])+sors[#sors]:len())
 					for i=1, #sors, 1 do
 						local actpossess = start .. sors[i] .. ending
+						contextq["piped"] = pipe(actpossess)
+						contextq["str"] = actpossess
 						if #pipe(actpossess)["#Relation"] > 1 then
 							print( table.concat(PossesMultiRel(actpossess,piped), ".\n"))
 						else
@@ -973,6 +981,8 @@ while quitting ~= true do
 											character[#character] = cra[n]
 										end
 									end
+									contextq["piped"] = pipe(treat)
+									contextq["str"] = treat
 								end
 							end
 						end
@@ -980,9 +990,12 @@ while quitting ~= true do
 					else
 						if #pipe(poss)["#Relation"] >1 then
 							print (table.concat(RelPossessRetrieve(poss, piped), ".\n"))
+							
 						else
 							print (poss .. ": ".. table.concat(RelpossesSimpleRetrieve(poss), ", ").. ".")
 						end
+						contextq["piped"] = pipe(poss)
+						contextq["str"] = poss
 					end
 					
 				end
@@ -991,6 +1004,8 @@ while quitting ~= true do
 		 end
 	else
 		if #piped["#Aliases"]>0 then
+		contextq["piped"] = piped
+		contextq["str"] = answer
 		local cra = piped:tag2str("#Pers")
 			for j=1, #cra, 1 do
 				local treat =""
@@ -1025,6 +1040,8 @@ while quitting ~= true do
 			end
 		end
 		if #piped["#member"]>0 or #piped["#Titles"]>0 or #piped["#House"]>0 or #piped["#Allegiance"]>0 then
+			contextq["piped"] = piped
+		contextq["str"] = answer
 			local cra = piped:tag2str("#Pers")
 			local ret ={}
 			for j=1, #cra, 1 do
