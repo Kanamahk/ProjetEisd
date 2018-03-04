@@ -1245,7 +1245,7 @@ local repprint = true
 			end
 			print (table.concat(ret, ", "))
 		else
-			if contextq["piped"] and contextq["str"] and #piped["#Quit"] == 0 then
+			if contextq["piped"] and contextq["str"] and #piped["#Quit"] == 0 and piped["#Pers"]>0 then
 				local pipeq = contextq["piped"]
 				local pers = piped:tag2str("#Character")[1]
 				answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
