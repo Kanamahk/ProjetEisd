@@ -240,6 +240,21 @@ pipe:pattern([[
 			|(#height)
 			)])
 			
+		] (#linkEnum [#ActEnum ([#Time 
+			(#Born|#Died) ((by? #Person)|(in (#Dates|#Houses))|(at #Places))
+		]
+		|[#HasPast #Timestamp? ((and|","|or) #Timestamp)??
+			((#member (#Allegiances|#Houses))
+			|(#Titles? #DET? #Title))
+		]
+		|(#Aliases #Aliase)
+		|(#Det? #Genders)
+		|[#Descr #UselssAdj*  
+			((#Color (#Eyes|#Skin))
+			|((#Hcolor|#Color) #Hair?)
+			|(#height)
+			)])
+			
 		]
 	]
 ]])--reconnaissance de question generale sur des personnages (Who died by Joffrey?)
