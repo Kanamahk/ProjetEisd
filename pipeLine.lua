@@ -255,7 +255,7 @@ pipe:pattern([[
 			|(#height)
 			)])
 			
-		]
+		])*
 	]
 ]])--reconnaissance de question generale sur des personnages (Who died by Joffrey?)
  pipe:pattern([[

@@ -4,6 +4,13 @@ Bd = dofile("CharacterBD.lua")
 quitting = false
 math.randomseed(os.time())
 
+retorq={
+		"What else can I do for you?",
+		"What more do you want ?",
+		"What else?",
+		"Is That all?",
+}
+
 function AnyToTimestamp(str)
 	local transform
 	if str == "current" or str == "currently" or str == "Current" then
@@ -442,18 +449,17 @@ contextq["str"] = nil
 print([[Hello, i'm AskA.S.O.I.A.F., your chatbot dedicated to A Song Of Ice And Fire.]])
 print([[What can i do for you today ? What do you need to know ?]])
 while quitting ~= true do
+local repprint = true
 	local context = {}
 	local interrogation =false
 	local Charac = nil
 	reply = ""
-	local vrb =""
 	if bounce == false then
 		answer = io.read():gsub("%p", " %0 ")
 	else
 		bounce = false
 	end
 	piped = pipe(answer)
-	print(piped)
 	quitting = #piped["#Quit"]>0
 	if #piped["#ActWho"]>0 then
 		local plies ={}		
@@ -480,6 +486,7 @@ while quitting ~= true do
 	elseif #piped["#Character"] == 0 then
 		if #piped["#Pers"] == 0 then
 			if(quitting == false) then
+				repprint = false
 				print ("Who are you talking about ?")
 			end
 		else
@@ -488,13 +495,6 @@ while quitting ~= true do
 	else
 		Charac = piped:tag2str("#Character")[1]
 		contextp = Charac
-	end
-	if quitting == false then
-		if #piped["#VRB"]>0 then
-			vrb = piped:tag2str("#VRB")[1]
-		elseif #pipe(contextq)["#VRB"]>0 then
-			vrb = contextq["piped"]:tag2str("#VRB")[1]
-		end
 	end
 	if #piped["#TiQuestion"]>0 then
 		for j=1, #piped["#TiQuestion"], 1 do
@@ -550,8 +550,6 @@ while quitting ~= true do
 				end
 			end
 		end
-		contextq["piped"] = piped
-		contextq["str"] = answer
 	end
 	if #piped["#LoQuestion"]>0 then
 		for j=1, #piped["#LoQuestion"], 1 do
@@ -915,7 +913,6 @@ while quitting ~= true do
 					end
 				end
 			elseif #personpi["#RelPossess"] == 1 then
-					local repattern = nil
 					local relpiposess = pipe(personpi:tag2str("#RelPossess")[1])
 					if #relpiposess["#PossEnum"] > 0 then
 						local sors = {}
@@ -928,6 +925,7 @@ while quitting ~= true do
 						local ending = rel:sub(rel:find(sors[#sors])+sors[#sors]:len())
 						for i=1, #sors, 1 do
 							local actpossess = start .. sors[i] .. ending
+							print(actpossess)
 							contextq["piped"] = pipe(actpossess)
 							contextq["str"] = actpossess
 							if #pipe(actpossess)["#Relation"] > 1 then
@@ -937,6 +935,8 @@ while quitting ~= true do
 							end
 						end
 					else
+						contextq["piped"] = pipe(personpi:tag2str("#RelPossess")[1])
+						contextq["str"] = personpi:tag2str("#RelPossess")[1]
 						if #relpiposess["#Relation"] > 1 then
 							local cars = PossesMultiRel(personpi:tag2str("#RelPossess")[1],piped)
 							if fill == true then
@@ -1118,7 +1118,7 @@ while quitting ~= true do
 		end
 		if #piped["#member"]>0 or #piped["#Titles"]>0 or #piped["#House"]>0 or #piped["#Allegiance"]>0 then
 			contextq["piped"] = piped
-		contextq["str"] = answer
+			contextq["str"] = answer
 			local cra = piped:tag2str("#Pers")
 			local ret ={}
 			for j=1, #cra, 1 do
@@ -1244,15 +1244,17 @@ while quitting ~= true do
 				end
 			end
 			print (table.concat(ret, ", "))
-		elseif contextq["piped"] and contextq["str"] and piped["#Quit"] == 0 then
-			local pipeq = contextq["piped"]
-			local pers = piped:tag2str("#Character")[1]
-			answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
-			bounce = true
+		else
+			if contextq["piped"] and contextq["str"] and #piped["#Quit"] == 0 then
+				local pipeq = contextq["piped"]
+				local pers = piped:tag2str("#Character")[1]
+				answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
+				bounce = true
+			end
 		end
 	end
-	if bounce == false then
-		print("what more do you want ?")
+	if bounce == false and repprint == true then
+		print(retorq[math.random(#retorq)])
 		if reply ~= "" then
 			print (reply..".")
 		end
