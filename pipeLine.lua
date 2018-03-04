@@ -3,7 +3,7 @@ pipe:basic()
 pipe:lexicon("#FirstName", "Lexiques/Lexique_CharactersFirstname.txt")
 pipe:lexicon("#Aliase", "Lexiques/Lexique_Alias.txt")
 pipe:lexicon("#Title", "Lexiques/Lexique_Titles.txt")
-pipe:lexicon("#Quit", {"quit", "Quit", "QUIT", "good bye", "Goodbye","goodbye","good bye", "Good bye","Good Bye", "bye", "Bye", "Aurevoir", "see you soon", "see you later"})
+pipe:lexicon("#Quit", {"quit", "Quit", "QUIT", "good bye","nothing", "Nothing", "Goodbye","goodbye","good bye", "Good bye","Good Bye", "bye", "Bye", "Aurevoir", "see you soon", "see you later"})
 -- pipe:model("model/postag-en")
 lexh ={}
 for line in io.lines("Lexiques/Houses.txt") do

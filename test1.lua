@@ -32,7 +32,7 @@ function PossRetrieval(possess, isPast)
 		local whot = {}
 		local who = piposs:tag2str("#Possessor")[1]
 		local wat = piposs:tag2str("#Possessed")[1]
-		
+		local continue = true
 		local Chara = nil
 		if #pipe(who)["#Possessif"]>0 then
 			Chara = Bd[Link[contextp][1]]
@@ -733,7 +733,7 @@ local repprint = true
 								end
 							end
 							
-							if #piped["#Plural"]>0 then
+							if #piped["#Plural"]>0 or buts[k]:sub(buts[k]:len()) == "s" then
 								print(prec:sub(prec:find(piprec:tag2str("#Det")[1]), prec:find("of") +2).. " ".. stion .. " " .. piprec:tag2str("#VRB")[1] .. " " ..table.concat(pri, ", "))
 							else
 								print(prec:sub(prec:find(piprec:tag2str("#Det")[1]), prec:find("of") +2).. " ".. stion .. " " .. piprec:tag2str("#VRB")[1] .. " " .. pri[math.random(#pri)])
@@ -835,13 +835,14 @@ local repprint = true
 					if #trep ==0 then
 						print( "I don't know about this information, sorry")
 					else
-						if #piped["#Plural"]>0 then
+						if #piped["#Plural"]>0  or buts[k]:sub(buts[k]:len()) == "s" and buts[k]~="alias" then
 							print(stion .. " : " ..table.concat(trep, ", "))
 						else
 							print(stion .. " : " .. trep[math.random(#trep)])
 							local op = io.read():gsub("%p", " %0 ")
-							while op == "and" or op == "And" or op == "and" or op == "And" do
+							while op == "and" or op == "And" or op == "and ?" or op == "And ?" do
 								print (trep[math.random(#trep)])
+								op = io.read():gsub("%p", " %0 ")
 							end
 						end
 					end
@@ -1082,6 +1083,7 @@ local repprint = true
 	else
 		if #piped["#Aliases"]>0 then
 		contextq["piped"] = piped
+		continue = false
 		contextq["str"] = answer
 		local cra = piped:tag2str("#Pers")
 			for j=1, #cra, 1 do
@@ -1116,145 +1118,147 @@ local repprint = true
 				end
 			end
 		end
-		if #piped["#member"]>0 or #piped["#Titles"]>0 or #piped["#House"]>0 or #piped["#Allegiance"]>0 then
-			contextq["piped"] = piped
-			contextq["str"] = answer
-			local cra = piped:tag2str("#Pers")
-			local ret ={}
-			for j=1, #cra, 1 do
-				local treat =""
-				local sor = cra[j]
-				if #Link[sor] > 1 then
-					local nativ = {}
-					print("Who are we refering to ?")
-					for i=1, #Link[sor], 1 do
-						local liases = {}
-						for k=1, #Bd[i]["Aliases"], 1 do
-							liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
+		if continue == true then
+			if #piped["#member"]>0 or #piped["#Titles"]>0 or #piped["#House"]>0 or #piped["#Allegiance"]>0 then
+				contextq["piped"] = piped
+				contextq["str"] = answer
+				local cra = piped:tag2str("#Pers")
+				local ret ={}
+				for j=1, #cra, 1 do
+					local treat =""
+					local sor = cra[j]
+					if #Link[sor] > 1 then
+						local nativ = {}
+						print("Who are we refering to ?")
+						for i=1, #Link[sor], 1 do
+							local liases = {}
+							for k=1, #Bd[i]["Aliases"], 1 do
+								liases[#liases+1] = Bd[i]["Aliases"][k]["value"]
+							end
+							nativ[#nativ+1] = sor .. ": " table.concat(liases, ", ")
 						end
-						nativ[#nativ+1] = sor .. ": " table.concat(liases, ", ")
-					end
-					local pprnt = table.concat(nativ, " or \n")
-					print (pprnt)
-					print ("please choose an alias")
-					local choice =io.read():gsub("%p", " %0 ")
-					while pprnt:find(choice) == nil do
-						print("i do not understand your choice, you may have done a mistake while writing it")
-						print("please try again")
-						choice = io.read():gsub("%p", " %0 ")
-					end
-					treat = choice
-				else
-					treat = sor
-				end
-				
-				local Chara = Bd[Link[treat][1]]
-				local timeTag = {}
-				if #piped["#Timestamp"]>0 then
-					for k =1, #piped:tag2str("#Timestamp"), 1 do
-						local sform = piped:tag2str("#Timestamp")[k]
-						timeTag[#timeTag+1] = AnyToTimestamp(sform)
-					end
-				end	
-				if (#piped:tag2str("#Timestamp")==1 and (piped:tag2str("#Timestamp")[1]:lower() == "former"))or (#piped["#Past"]>0 == true and #piped:tag2str("#Timestamp")==0)then
-					if #piped["#Allegiance"]>0 then
-						for i = 1, #Chara["Allegiance"]["former"], 1 do
-							ret[#ret+1] = Chara["Allegiance"]["former"][i]["value"]
+						local pprnt = table.concat(nativ, " or \n")
+						print (pprnt)
+						print ("please choose an alias")
+						local choice =io.read():gsub("%p", " %0 ")
+						while pprnt:find(choice) == nil do
+							print("i do not understand your choice, you may have done a mistake while writing it")
+							print("please try again")
+							choice = io.read():gsub("%p", " %0 ")
 						end
+						treat = choice
+					else
+						treat = sor
 					end
-					if #piped["#Titles"]>0 then
-						for i = 1, #Chara["Titles"]["former"], 1 do
-							ret[#ret+1] = Chara["Titles"]["former"][i]["value"]
+					
+					local Chara = Bd[Link[treat][1]]
+					local timeTag = {}
+					if #piped["#Timestamp"]>0 then
+						for k =1, #piped:tag2str("#Timestamp"), 1 do
+							local sform = piped:tag2str("#Timestamp")[k]
+							timeTag[#timeTag+1] = AnyToTimestamp(sform)
 						end
-					end
-					if #piped["#House"]>0 then
-						for i = 1, #Chara["House"]["former"], 1 do
-							ret[#ret+1] = Chara["House"]["former"][i]["value"]
-						end
-					end
-				elseif (#piped:tag2str("#Timestamp")==1 and( piped:tag2str("#Timestamp")[1]:lower() == "current" )) or (#piped["#Past"] == 0 and #piped:tag2str("#Timestamp")==0)then
-					if #piped["#Allegiance"]>0 then
-						for i = 1, #Chara["Allegiance"]["current"], 1 do
-							ret[#ret+1] = Chara["Allegiance"]["current"][i]["value"]
-						end
-					end
-					if #piped["#Titles"]>0 then
-						for i = 1, #Chara["Titles"]["current"], 1 do
-							ret[#ret+1] = Chara["Titles"]["current"][i]["value"]
-						end
-					end
-					if #piped["#House"]>0 then
-						for i = 1, #Chara["House"]["current"], 1 do
-							ret[#ret+1] = Chara["House"]["current"][i]["value"]
-						end
-					end
-				elseif #piposs:tag2str("#Timestamp")==1 then
-					if #piped["#Allegiance"]>0 then
-						for i = 1, #Chara["Allegiance"]["claim"], 1 do
-							ret[#ret+1] = Chara["Allegiance"]["claim"][i]["value"]
-						end
-					end
-					if #piped["#Titles"]>0 then
-						for i = 1, #Chara["Titles"]["claim"], 1 do
-							ret[#ret+1] = Chara["Titles"]["claim"][i]["value"]
-						end
-					end
-					if #piped["#House"]>0 then
-						for i = 1, #Chara["House"]["claim"], 1 do
-							ret[#ret+1] = Chara["House"]["claim"][i]["value"]
-						end
-					end
-				elseif #piposs:tag2str("#Timestamp")>1 then 
-					if possess:find(" or ") then
-						local chosen = timeTag[math.random(#timeTag)]
+					end	
+					if (#piped:tag2str("#Timestamp")==1 and (piped:tag2str("#Timestamp")[1]:lower() == "former"))or (#piped["#Past"]>0 == true and #piped:tag2str("#Timestamp")==0)then
 						if #piped["#Allegiance"]>0 then
-							for i=1, #Chara["Allegiance"][chosen], 1 do
-								ret[#ret +1] = Chara["Allegiance"][chosen][i]["value"]
+							for i = 1, #Chara["Allegiance"]["former"], 1 do
+								ret[#ret+1] = Chara["Allegiance"]["former"][i]["value"]
 							end
 						end
 						if #piped["#Titles"]>0 then
-							for i=1, #Chara["Titles"][chosen], 1 do
-								ret[#ret +1] = Chara["Titles"][chosen][i]["value"]
+							for i = 1, #Chara["Titles"]["former"], 1 do
+								ret[#ret+1] = Chara["Titles"]["former"][i]["value"]
 							end
 						end
 						if #piped["#House"]>0 then
-							for i=1, #Chara["House"][chosen], 1 do
-								ret[#ret +1] = Chara["House"][chosen][i]["value"]
+							for i = 1, #Chara["House"]["former"], 1 do
+								ret[#ret+1] = Chara["House"]["former"][i]["value"]
 							end
 						end
-					else
-						for k=1, #timeTag, 1 do	
+					elseif (#piped:tag2str("#Timestamp")==1 and( piped:tag2str("#Timestamp")[1]:lower() == "current" )) or (#piped["#Past"] == 0 and #piped:tag2str("#Timestamp")==0)then
+						if #piped["#Allegiance"]>0 then
+							for i = 1, #Chara["Allegiance"]["current"], 1 do
+								ret[#ret+1] = Chara["Allegiance"]["current"][i]["value"]
+							end
+						end
+						if #piped["#Titles"]>0 then
+							for i = 1, #Chara["Titles"]["current"], 1 do
+								ret[#ret+1] = Chara["Titles"]["current"][i]["value"]
+							end
+						end
+						if #piped["#House"]>0 then
+							for i = 1, #Chara["House"]["current"], 1 do
+								ret[#ret+1] = Chara["House"]["current"][i]["value"]
+							end
+						end
+					elseif #piposs:tag2str("#Timestamp")==1 then
+						if #piped["#Allegiance"]>0 then
+							for i = 1, #Chara["Allegiance"]["claim"], 1 do
+								ret[#ret+1] = Chara["Allegiance"]["claim"][i]["value"]
+							end
+						end
+						if #piped["#Titles"]>0 then
+							for i = 1, #Chara["Titles"]["claim"], 1 do
+								ret[#ret+1] = Chara["Titles"]["claim"][i]["value"]
+							end
+						end
+						if #piped["#House"]>0 then
+							for i = 1, #Chara["House"]["claim"], 1 do
+								ret[#ret+1] = Chara["House"]["claim"][i]["value"]
+							end
+						end
+					elseif #piposs:tag2str("#Timestamp")>1 then 
+						if possess:find(" or ") then
+							local chosen = timeTag[math.random(#timeTag)]
 							if #piped["#Allegiance"]>0 then
-								for i = 1, #Chara["Allegiance"][timeTag[k]], 1 do
-									ret[#ret+1] = Chara["Allegiance"][timeTag[k]][i]["value"]
+								for i=1, #Chara["Allegiance"][chosen], 1 do
+									ret[#ret +1] = Chara["Allegiance"][chosen][i]["value"]
 								end
 							end
 							if #piped["#Titles"]>0 then
-								for i = 1, #Chara["Titles"][timeTag[k]], 1 do
-									ret[#ret+1] = Chara["Titles"][timeTag[k]][i]["value"]
+								for i=1, #Chara["Titles"][chosen], 1 do
+									ret[#ret +1] = Chara["Titles"][chosen][i]["value"]
 								end
 							end
 							if #piped["#House"]>0 then
-								for i = 1, #Chara["House"][timeTag[k]], 1 do
-									ret[#ret+1] = Chara["House"][timeTag[k]][i]["value"]
+								for i=1, #Chara["House"][chosen], 1 do
+									ret[#ret +1] = Chara["House"][chosen][i]["value"]
+								end
+							end
+						else
+							for k=1, #timeTag, 1 do	
+								if #piped["#Allegiance"]>0 then
+									for i = 1, #Chara["Allegiance"][timeTag[k]], 1 do
+										ret[#ret+1] = Chara["Allegiance"][timeTag[k]][i]["value"]
+									end
+								end
+								if #piped["#Titles"]>0 then
+									for i = 1, #Chara["Titles"][timeTag[k]], 1 do
+										ret[#ret+1] = Chara["Titles"][timeTag[k]][i]["value"]
+									end
+								end
+								if #piped["#House"]>0 then
+									for i = 1, #Chara["House"][timeTag[k]], 1 do
+										ret[#ret+1] = Chara["House"][timeTag[k]][i]["value"]
+									end
 								end
 							end
 						end
 					end
 				end
-			end
-			print (table.concat(ret, ", "))
-		else
-			if contextq["piped"] and contextq["str"] and #piped["#Quit"] == 0 and piped["#Pers"]>0 then
-				local pipeq = contextq["piped"]
-				local pers = piped:tag2str("#Character")[1]
-				answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
-				bounce = true
+				print (table.concat(ret, ", "))
+			else
+				if contextq["piped"] and contextq["str"] and #piped["#Quit"] == 0 and #piped["#Pers"]>0 then
+					local pipeq = contextq["piped"]
+					local pers = piped:tag2str("#Character")[1]
+					answer = contextq["str"]:sub(1,contextq["str"]:find(pipeq:tag2str("#Pers")[1])-1 )..pers..contextq["str"]:sub(contextq["str"]:find(pipeq:tag2str("#Pers")[1])+pipeq:tag2str("#Pers")[1]:len())
+					bounce = true
+				end
 			end
 		end
 	end
 	if bounce == false and repprint == true then
-		print(retorq[math.random(#retorq)])
+		if quitting == false then		print(retorq[math.random(#retorq)])	end
 		if reply ~= "" then
 			print (reply..".")
 		end
